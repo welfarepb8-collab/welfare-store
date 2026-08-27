@@ -1,0 +1,2684 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>สั่งซื้อเครื่องแต่งกาย | Welfare Factory</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bg: '#141110',
+            panel: '#1e1a18',
+            panel2: '#26201d',
+            accent: '#f5860f',
+            accent2: '#ffb347',
+          },
+          fontFamily: {
+            sans: ['"Noto Sans Thai"', 'Kanit', 'system-ui', 'sans-serif']
+          },
+          boxShadow: {
+            glow: '0 8px 30px rgba(245,134,15,0.25)'
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Kanit','Noto Sans Thai',sans-serif; }
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-thumb { background: #3a322d; border-radius: 8px; }
+    .card-glass {
+      background: linear-gradient(145deg, #241f1c 0%, #1a1614 100%);
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    .tab-pill.active {
+      background: linear-gradient(135deg,#f5860f,#ffb347);
+      color: #1a1210;
+      box-shadow: 0 6px 18px rgba(245,134,15,0.35);
+    }
+    .fade-in { animation: fadeIn .25s ease; }
+    @keyframes fadeIn { from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:translateY(0)} }
+    .swal2-popup { font-family: 'Kanit','Noto Sans Thai',sans-serif !important; }
+    .no-spinner::-webkit-outer-spin-button, .no-spinner::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .no-spinner { -moz-appearance: textfield; }
+    .dash-nav-btn { color: rgba(255,255,255,0.6); }
+    .dash-nav-btn:hover { background: rgba(255,255,255,0.08); color: #fff; }
+    .dash-nav-btn.active { background: linear-gradient(135deg,#f5860f,#ffb347); color: #1a1210; }
+    .landing-nav-btn { color: rgba(255,255,255,0.85); }
+    .landing-nav-btn:disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+
+    /* ============ ใบผ่านชุดบรรจุ (แสดงเป็น modal ในหน้าเดิม แทนการเปิดแท็บใหม่ เพื่อเลี่ยงปัญหาแท็บเปิดแล้วขึ้นหน้าขาวเปล่าใน webview/เบราว์เซอร์บางตัว) ============ */
+    #uniformPassModal { background: rgba(0,0,0,0.6); }
+    .pv-page { width: 100%; max-width: 210mm; background:#fff; color:#000; margin:0 auto; padding:8mm; border-radius:4px; }
+    .pv-voucher { border:1.5px solid #000; padding:5mm 6mm; background:#fff; font-family:'Kanit','Noto Sans Thai',sans-serif; }
+    .pv-full { width:100%; min-height:200mm; font-size:15px; }
+    .pv-half { width:100%; min-height:100mm; font-size:11.5px; }
+    .pv-half + .pv-half { margin-top:4mm; border-top:1px dashed #666; }
+    .pv-company { text-align:center; font-weight:700; margin:0 0 1mm; font-size:1.15em; }
+    .pv-formtitle { text-align:center; margin:0 0 3mm; font-weight:600; font-size:1.05em; padding-bottom:2mm; border-bottom:1.5px solid #000; }
+    .pv-fieldrow { display:flex; flex-wrap:wrap; align-items:baseline; gap:1mm 3mm; padding:1.5mm 0; border-bottom:1px solid #000; }
+    .pv-flabel { font-weight:600; white-space:nowrap; }
+    .pv-fvalue { border-bottom:1px solid #000; padding:0 2mm 0.5mm; min-width:20mm; }
+    .pv-grow { flex:1 1 auto; }
+    .pv-underline { text-decoration:underline; text-underline-offset:2px; color:#1a1a6e; }
+    .pv-tagsrow { display:flex; gap:1.5mm 2mm; padding:2mm 0; border-bottom:1.5px solid #000; flex-wrap:wrap; }
+    .pv-slash { color:#000; }
+    .pv-formtable { width:100%; border-collapse:collapse; margin-top:0; }
+    .pv-formtable th { border-bottom:1.5px solid #000; padding:1.5mm 2mm; font-weight:600; font-size:0.95em; text-align:left; }
+    .pv-formtable th.pv-c-qty { border-right:1px solid #000; width:22%; text-align:center; }
+    .pv-formtable td.pv-td { border-bottom:1px dotted #555; padding:1.8mm 2mm; font-size:0.92em; }
+    .pv-formtable td.pv-td:first-child { border-right:1px solid #000; }
+    .pv-center { text-align:center; }
+    .pv-confirmrow { text-align:center; padding:2mm; font-size:0.95em; font-weight:600; color:#1a1a6e; }
+    .pv-noterow { text-align:center; padding:2mm; font-size:0.85em; font-style:italic; color:#1a1a6e; }
+    .pv-sizelabel { font-size:0.9em; }
+
+    /* หน้าจอมือถือ: ลด padding/ตัวอักษรลง ให้เนื้อหาพอดีความกว้างหน้าจอโดยไม่ต้องซูม/เลื่อนซ้ายขวา */
+    @media screen and (max-width: 640px) {
+      .pv-page { padding: 4mm 3mm; }
+      .pv-voucher { padding: 3mm 3.5mm; }
+      .pv-full { font-size: 12.5px; min-height: auto; }
+      .pv-half { font-size: 10.5px; min-height: auto; }
+      .pv-formtitle { font-size: 1em; }
+      .pv-fvalue { min-width: 0; }
+      .pv-formtable th, .pv-formtable td.pv-td { padding: 1.3mm 1.3mm; }
+    }
+
+    @media print {
+      body * { visibility: hidden !important; }
+      #uniformPassModal, #uniformPassModal * { visibility: visible !important; }
+      #uniformPassModal { position: fixed; inset: 0; background: #fff !important; z-index: 9999; overflow: visible !important; }
+      #uniformPassToolbar { display: none !important; }
+      #uniformPassScrollArea { padding: 0 !important; }
+      .pv-page { box-shadow: none !important; max-width: none; width: 100%; padding: 8mm; }
+    }
+  </style>
+</head>
+<body class="bg-bg text-white min-h-screen pb-28">
+
+  <!-- ============ HEADER ============ -->
+  <header class="sticky top-0 z-30 bg-bg/90 backdrop-blur border-b border-white/5">
+    <div class="max-w-5xl mx-auto px-5 pt-5 pb-4 flex items-start justify-between">
+      <div>
+        <p class="text-white/50 text-sm">บริษัท เพรซิเดนท์ เบเกอรี่ จำกัด (มหาชน)</p>
+        <h1 class="text-2xl font-semibold mt-1">สั่งซื้อ<span class="text-accent">เครื่องแต่งกาย</span></h1>
+        <p class="text-white/40 text-xs mt-1">Welfare Factory - ระบบสั่งซื้ออุปกรณ์เครื่องแต่งกายพนักงาน</p>
+      </div>
+      <button id="btnDashboard" class="h-11 shrink-0 px-4 rounded-full bg-panel2 border border-white/10 flex items-center justify-center hover:bg-white/10 transition text-sm font-medium text-accent">
+        Admin Store
+      </button>
+    </div>
+  </header>
+
+  <main class="max-w-5xl mx-auto px-5 mt-5">
+
+    <!-- ============ STEP 1: MODE SELECT ============ -->
+    <section id="modeSelect" class="fade-in">
+      <p class="text-sm text-white/50 mb-2">ขั้นตอนที่ 1</p>
+      <h2 class="font-medium text-lg mb-4">เลือกรายการที่ต้องการทำ</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <button id="btnModeOrder" class="card-glass rounded-2xl p-5 text-left border border-white/10 hover:border-accent/40 transition">
+          <div class="w-11 h-11 rounded-xl bg-accent/15 flex items-center justify-center text-accent mb-3">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4M3 6h18M16 10a4 4 0 01-8 0"/>
+            </svg>
+          </div>
+          <p class="font-medium">สั่งซื้อสินค้า</p>
+        </button>
+        <button id="btnModeStatus" class="card-glass rounded-2xl p-5 text-left border border-white/10 hover:border-accent/40 transition">
+          <div class="w-11 h-11 rounded-xl bg-accent/15 flex items-center justify-center text-accent mb-3">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+            </svg>
+          </div>
+          <p class="font-medium">เช็คสถานะสินค้า</p>
+          <p class="text-white/40 text-xs mt-1">ดูว่าสินค้าของคุณถึงขั้นตอนไหนแล้ว</p>
+        </button>
+      </div>
+    </section>
+
+    <!-- ============ STEP 2: EMPLOYEE CODE ============ -->
+    <section id="employeeSection" class="hidden card-glass rounded-3xl p-5 shadow-glow mt-6 fade-in">
+      <div class="flex items-center justify-between mb-2">
+        <p class="text-sm text-white/50">ขั้นตอนที่ 2</p>
+        <button id="btnBackToMode" class="text-white/40 text-xs hover:text-white transition"> กลับสู่หน้าหลัก</button>
+      </div>
+      <h2 class="font-medium text-lg mb-4" id="employeeSectionTitle">กรอกรหัสพนักงานเพื่อเริ่มสั่งซื้อ</h2>
+      <div class="flex gap-2">
+        <input id="empCode" type="text" placeholder="กรอกรหัสพนักงาน..." class="flex-1 bg-panel2 border border-white/10 rounded-2xl px-4 py-3 outline-none focus:border-accent transition placeholder:text-white/30">
+        <button id="btnFetchEmp" class="bg-gradient-to-br from-accent to-accent2 text-[#1a1210] font-medium px-5 rounded-2xl hover:brightness-110 transition">ค้นหา</button>
+      </div>
+
+      <div id="empInfo" class="hidden mt-4 fade-in">
+        <div class="bg-panel2 rounded-2xl p-4 flex items-center gap-3 border border-accent/30">
+          <div class="w-11 h-11 rounded-full bg-accent/20 flex items-center justify-center text-accent font-semibold" id="empAvatar"></div>
+          <div>
+            <p class="font-medium" id="empName"></p>
+            <p class="text-white/50 text-sm" id="empDept"></p>
+          </div>
+        </div>
+
+        <div id="pickupLocationWrap" class="hidden mt-4">
+          <label class="text-sm text-white/50 mb-2 block">สถานที่รับสินค้า</label>
+          <select id="pickupLocation" class="w-full bg-panel2 border border-white/10 rounded-2xl px-4 py-3 outline-none focus:border-accent transition">
+            <option value="" disabled selected>เลือกสถานที่รับสินค้า...</option>
+          </select>
+          
+          <label class="text-sm text-white/50 mt-4 mb-2 block">เบอร์โทรศัพท์สำหรับติดต่อกลับ</label>
+          <input type="tel" id="empPhone" placeholder="08X-XXX-XXXX" class="w-full bg-panel2 border border-white/10 rounded-2xl px-4 py-3 outline-none focus:border-accent transition">
+
+          <button id="btnContinueToCatalog" class="mt-5 w-full bg-gradient-to-br from-accent to-accent2 text-[#1a1210] font-semibold py-3 rounded-2xl hover:brightness-110 transition">
+            ดำเนินการต่อ
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ STEP 3A: CATALOG ============ -->
+    <section id="catalogSection" class="hidden fade-in mt-6">
+      <div class="flex items-center justify-between mb-4">
+        <button id="btnBackFromCatalog" class="text-white/50 text-sm hover:text-white transition"> กลับ</button>
+        <h2 class="font-medium text-lg">เลือกสินค้า</h2>
+        <span class="w-8"></span>
+      </div>
+      <div id="categoryTabs" class="flex gap-2 mb-5 overflow-x-auto pb-1"></div>
+      <div id="productGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></div>
+    </section>
+
+    <!-- ============ STEP 3B: ORDER STATUS ============ -->
+    <section id="statusSection" class="hidden fade-in mt-6">
+      <div class="flex items-center justify-between mb-4">
+        <button id="btnBackFromStatus" class="text-white/50 text-sm hover:text-white transition"> กลับ</button>
+        <h2 class="font-medium text-lg">สถานะคำสั่งซื้อ</h2>
+        <span class="w-8"></span>
+      </div>
+
+      <div id="uniformStatusWrap" class="hidden mb-6">
+        <p class="text-sm text-white/50 mb-2">สถานะการเบิกชุดบรรจุ</p>
+        <div id="uniformStatusList" class="space-y-3"></div>
+      </div>
+
+      <p class="text-sm text-white/50 mb-2">สถานะคำสั่งซื้อ</p>
+      <div id="statusList" class="space-y-3"></div>
+    </section>
+  </main>
+
+  <!-- ============ CART BAR ============ -->
+  <div id="cartBar" class="hidden fixed bottom-0 left-0 right-0 z-40">
+    <div class="max-w-5xl mx-auto px-5 pb-5">
+      <div class="card-glass rounded-3xl p-4 shadow-glow border border-accent/20">
+        <div class="flex items-center justify-between cursor-pointer" id="cartToggle">
+          <div class="flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l3-8H6.4M7 13L5.4 5M7 13l-2.293 2.293A1 1 0 005 17h12M9 21a1 1 0 100-2 1 1 0 000 2zm8 0a1 1 0 100-2 1 1 0 000 2z"/>
+            </svg>
+            <span class="text-sm text-white/60">ตะกร้า (<span id="cartCount">0</span> รายการ)</span>
+          </div>
+          <div class="text-right">
+            <span class="font-semibold text-accent block" id="cartTotal">฿0</span>
+            <span class="text-[10px] text-white/40" id="cartVatNote"></span>
+          </div>
+        </div>
+        <div id="cartItems" class="hidden mt-3 max-h-48 overflow-y-auto space-y-2 pr-1"></div>
+        <button id="btnSubmitOrder" class="mt-3 w-full bg-gradient-to-br from-accent to-accent2 text-[#1a1210] font-semibold py-3 rounded-2xl hover:brightness-110 transition">ยืนยันสั่งซื้อ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ DASHBOARD MODAL (Admin Store) ============ -->
+  <div id="dashModal" class="hidden fixed inset-0 z-50 flex bg-[#1a1614] text-white">
+
+    <!-- MOBILE SIDEBAR BACKDROP -->
+    <div id="dashSidebarBackdrop" class="hidden fixed inset-0 bg-black/40 z-30 md:hidden"></div>
+
+    <!-- SIDEBAR (buttons live on the left, per request) -->
+    <aside id="dashSidebar" class="fixed md:static inset-y-0 left-0 z-40 w-64 shrink-0 h-full flex flex-col bg-[#2b1810] text-white/90 -translate-x-full md:translate-x-0 transition-transform duration-200">
+      <div class="px-5 pt-6 pb-5 border-b border-white/10">
+        <p class="text-[11px] tracking-widest text-white/45 font-semibold">WELFARE FACTORY</p>
+        <p class="text-lg font-semibold mt-1">Admin Store</p>
+      </div>
+
+      <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+        <button id="navDashboard" class="dash-nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition text-left">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-[18px] h-[18px] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3v18h18M8 17V9m4 8V5m4 12v-6"/></svg>
+          <span class="flex-1">แดชบอร์ด</span>
+          <svg id="navDashboardChevron" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0 transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div id="navDashboardSubmenu" class="pl-[30px] space-y-1">
+          <button id="navDashOrders" class="dash-nav-btn w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] font-medium transition text-left">
+            <span class="w-1.5 h-1.5 rounded-full bg-current opacity-50 shrink-0"></span>
+            <span>คำสั่งซื้อวันนี้</span>
+          </button>
+          <button id="navDashUniformToday" class="dash-nav-btn w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] font-medium transition text-left">
+            <span class="w-1.5 h-1.5 rounded-full bg-current opacity-50 shrink-0"></span>
+            <span>เบิกชุดบรรจุวันนี้</span>
+          </button>
+          <button id="navDashSpecialToday" class="dash-nav-btn w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] font-medium transition text-left">
+            <span class="w-1.5 h-1.5 rounded-full bg-current opacity-50 shrink-0"></span>
+            <span>เบิกพิเศษวันนี้</span>
+          </button>
+        </div>
+        <button id="navUniform" class="dash-nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition text-left">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-[18px] h-[18px] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 2l3 3h6l3-3M6 2L3 6l3 3 2-2v13h8V7l2 2 3-3-3-4M11 5v3M13 5v3"/></svg>
+          <span>เบิกชุดบรรจุ</span>
+        </button>
+        <button id="navSpecial" class="dash-nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition text-left">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-[18px] h-[18px] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7h-9m9 0v10a2 2 0 01-2 2H9a2 2 0 01-2-2V7m9 0V5a2 2 0 00-2-2h-3a2 2 0 00-2 2v2M5 7h4"/></svg>
+          <span>เบิกพิเศษ</span>
+        </button>
+        <button id="navItemSummary" class="dash-nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition text-left">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-[18px] h-[18px] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20.59 13.41L12 22l-9-9V3h10l8.59 8.59a2 2 0 010 2.82z"/><circle cx="7.5" cy="7.5" r="1.5" fill="currentColor" stroke="none"/></svg>
+          <span>สรุปยอดขายสินค้า</span>
+        </button>
+        <button id="navStock" class="dash-nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition text-left">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-[18px] h-[18px] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8V21H3V8M1 3h22v5H1V3zM10 12h4"/></svg>
+          <span>Update Stock</span>
+        </button>
+      </nav>
+
+      <div class="px-3 pb-4 pt-3 border-t border-white/10 space-y-1">
+        <button id="btnLogoutDash" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-white/70 hover:bg-white/10 hover:text-white transition text-left">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-[18px] h-[18px] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+          <span>Log out</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <div class="flex-1 min-w-0 h-full flex flex-col overflow-hidden">
+      <div class="sticky top-0 z-10 bg-[#1a1614]/95 backdrop-blur border-b border-white/10 shrink-0">
+        <div class="px-4 sm:px-6 py-4">
+          <div class="flex items-center justify-between gap-3 flex-wrap">
+            <div class="flex items-center gap-3 min-w-0">
+              <button id="btnOpenSidebar" class="md:hidden w-10 h-10 rounded-full bg-[#2b1810] text-white flex items-center justify-center shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+              </button>
+              <div class="min-w-0">
+                <h3 class="font-semibold text-xl" id="dashPageTitle">คำสั่งซื้อวันนี้</h3>
+                <p class="text-white/50 text-xs mt-0.5" id="dashDate"></p>
+              </div>
+            </div>
+            <div id="dashDateRangeWrap" class="flex items-center gap-2 shrink-0 flex-wrap">
+              <input type="date" id="dashDateFrom" class="bg-[#241f1c] border border-white/10 rounded-xl px-3 py-2 text-sm outline-none focus:border-[#f5860f] transition">
+              <span class="text-white/50 text-sm">ถึง</span>
+              <input type="date" id="dashDateTo" class="bg-[#241f1c] border border-white/10 rounded-xl px-3 py-2 text-sm outline-none focus:border-[#f5860f] transition">
+            </div>
+          </div>
+
+          <div id="dashStatsGrid" class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
+            <div class="bg-[#241f1c] rounded-2xl p-4 border border-white/10">
+              <p class="text-white/50 text-xs">พนักงานที่สั่ง</p>
+              <p class="text-xl font-semibold mt-1" id="dashStatEmployees">0</p>
+            </div>
+            <div class="bg-[#241f1c] rounded-2xl p-4 border border-white/10">
+              <p class="text-white/50 text-xs">จำนวนออเดอร์</p>
+              <p class="text-xl font-semibold mt-1" id="dashStatOrders">0</p>
+            </div>
+            <div class="bg-[#241f1c] rounded-2xl p-4 border border-white/10">
+              <p class="text-white/50 text-xs">ยกเลิก</p>
+              <p class="text-xl font-semibold mt-1 text-red-500" id="dashStatCancelled">0</p>
+            </div>
+            <div class="bg-[#241f1c] rounded-2xl p-4 border border-white/10">
+              <p class="text-white/50 text-xs">ยอดรวมทั้งหมด (หักยกเลิก)</p>
+              <p class="text-xl font-semibold mt-1 text-[#f5860f]" id="dashGrandTotal">฿0</p>
+            </div>
+          </div>
+
+          <div class="relative mt-4" id="dashSearchWrap">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-white/30 absolute left-3 top-1/2 -translate-y-1/2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="7"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/>
+            </svg>
+            <input type="text" id="dashSearch" placeholder="ค้นหาชื่อ, รหัสพนักงาน หรือ แผนก... (ค้นหาได้ทุกวันที่ ไม่จำกัดเฉพาะช่วงวันที่ด้านบน)" class="w-full bg-[#241f1c] border border-white/10 rounded-xl pl-9 pr-9 py-2.5 text-sm outline-none focus:border-[#f5860f] text-white placeholder:text-white/30">
+            <button type="button" id="dashSearchClear" class="hidden absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-white/10 hover:bg-white/20 text-white/60 hover:text-white flex items-center justify-center transition">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div id="dashBody" class="flex-1 overflow-y-auto">
+
+        <!-- แดชบอร์ด: chart + top products -->
+        <div id="dashOverviewWrap" class="max-w-6xl mx-auto px-4 sm:px-6 pt-5">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div class="lg:col-span-2 bg-[#241f1c] rounded-2xl border border-white/10 p-4 sm:p-5">
+              <div class="flex items-center justify-between mb-4">
+                <p class="font-medium">ยอดขายรายวัน</p>
+                <p class="text-white/50 text-xs">รวม <span id="dashChartTotal" class="text-[#f5860f] font-medium">฿0</span></p>
+              </div>
+              <div id="dashChart" class="flex items-end gap-2 sm:gap-3 h-40"></div>
+            </div>
+            <div class="bg-[#241f1c] rounded-2xl border border-white/10 p-4 sm:p-5">
+              <div class="flex items-center justify-between mb-3">
+                <p class="font-medium">สินค้าขายดี</p>
+              </div>
+              <div id="dashTopProducts" class="space-y-3"></div>
+            </div>
+          </div>
+        </div>
+
+        <p class="max-w-6xl mx-auto px-4 sm:px-6 pt-6 pb-2 text-sm text-white/50 font-medium" id="dashGridLabel">รายชื่อพนักงาน / ออเดอร์</p>
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 pb-6 grid grid-cols-1 lg:grid-cols-2 gap-4" id="dashGrid"></div>
+
+        <!-- เบิกชุดบรรจุ: ค้นหารหัสพนักงาน แล้วกรอกรายการเสื้อ/กางเกงที่เบิก -->
+        <div class="max-w-3xl mx-auto px-4 sm:px-6 py-5 hidden" id="uniformWrap">
+          <div class="bg-[#241f1c] rounded-2xl border border-white/10 p-4 sm:p-5">
+            <label class="text-sm text-white/50 mb-2 block">ค้นหารหัสพนักงาน</label>
+            <div class="flex gap-2">
+              <input id="uniformEmpCode" type="text" placeholder="กรอกรหัสพนักงาน..." class="flex-1 bg-[#1a1614] border border-white/10 rounded-xl px-4 py-2.5 outline-none focus:border-[#f5860f] transition placeholder:text-white/30">
+              <button id="btnUniformSearch" class="bg-gradient-to-br from-accent to-accent2 text-[#1a1210] font-medium px-5 rounded-xl hover:brightness-110 transition">ค้นหา</button>
+            </div>
+
+            <div id="uniformEmpInfo" class="hidden mt-4 fade-in">
+              <div class="bg-[#1a1614] rounded-xl p-4 flex items-center gap-3 border border-accent/30">
+                <div class="w-11 h-11 rounded-full bg-accent/20 flex items-center justify-center text-accent font-semibold shrink-0" id="uniformEmpAvatar"></div>
+                <div>
+                  <p class="font-medium" id="uniformEmpName"></p>
+                  <p class="text-white/50 text-sm" id="uniformEmpDept"></p>
+                  <p class="text-[#f5860f] text-xs mt-0.5" id="uniformEmpConfirmDate"></p>
+                </div>
+              </div>
+            </div>
+
+            <div id="uniformFormWrap" class="hidden mt-5 fade-in">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="text-sm text-white/50 mb-2 block">เสื้อ</label>
+                  <select id="uniformShirtItem" class="w-full bg-[#1a1614] border border-white/10 rounded-xl px-4 py-2.5 outline-none focus:border-[#f5860f] transition mb-2">
+                    <option value="">ไม่เบิกเสื้อ</option>
+                    <option value="เสื้อโปโลสีขาว">เสื้อโปโลสีขาว</option>
+                    <option value="เสื้อโปโลสีกรม">เสื้อโปโลสีกรม</option>
+                  </select>
+                  <select id="uniformShirtSize" disabled class="w-full bg-[#1a1614] border border-white/10 rounded-xl px-4 py-2.5 outline-none focus:border-[#f5860f] transition">
+                    <option value="" disabled selected>เลือกไซส์...</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="text-sm text-white/50 mb-2 block">กางเกง</label>
+                  <select id="uniformPantsItem" class="w-full bg-[#1a1614] border border-white/10 rounded-xl px-4 py-2.5 outline-none focus:border-[#f5860f] transition mb-2">
+                    <option value="">ไม่เบิกกางเกง</option>
+                    <option value="กางเกงสีเทา">กางเกงสีเทา</option>
+                    <option value="กางเกงสีดำ">กางเกงสีดำ</option>
+                  </select>
+                  <select id="uniformPantsSize" disabled class="w-full bg-[#1a1614] border border-white/10 rounded-xl px-4 py-2.5 outline-none focus:border-[#f5860f] transition">
+                    <option value="" disabled selected>เลือกไซส์...</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="mt-4">
+                <label class="text-sm text-white/50 mb-2 block">แถบสี</label>
+                <select id="uniformStrapItem" class="w-full bg-[#1a1614] border border-white/10 rounded-xl px-4 py-2.5 outline-none focus:border-[#f5860f] transition">
+                  <option value="">ไม่เบิกแถบสี</option>
+                </select>
+              </div>
+
+              <button id="btnSubmitUniformClaim" class="mt-5 w-full bg-gradient-to-br from-accent to-accent2 text-[#1a1210] font-semibold py-3 rounded-xl hover:brightness-110 transition">บันทึกการเบิกชุดบรรจุ</button>
+
+              <div class="mt-5">
+                <p class="text-white/50 text-xs mb-2">ประวัติการเบิกชุดบรรจุของพนักงานคนนี้</p>
+                <div id="uniformHistoryList" class="space-y-1.5"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- แดชบอร์ด > เบิกชุดบรรจุ: สรุปรายการเบิกชุดบรรจุตามช่วงวันที่ที่เลือก (ค่าเริ่มต้น = วันนี้) จากชีท "เบิกชุดบรรจุ" -->
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 py-5 hidden" id="uniformTodayWrap">
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+            <div class="bg-[#241f1c] rounded-2xl p-4 border border-white/10">
+              <p class="text-white/50 text-xs">พนักงานที่เบิก</p>
+              <p class="text-xl font-semibold mt-1" id="uniformTodayStatEmployees">0</p>
+            </div>
+            <div class="bg-[#241f1c] rounded-2xl p-4 border border-white/10">
+              <p class="text-white/50 text-xs">จำนวนรายการที่เบิก</p>
+              <p class="text-xl font-semibold mt-1 text-[#f5860f]" id="uniformTodayStatItems">0</p>
+            </div>
+          </div>
+          <div class="relative mb-5" id="uniformTodaySearchWrap">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-white/30 absolute left-3 top-1/2 -translate-y-1/2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="7"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/>
+            </svg>
+            <input type="text" id="uniformTodaySearch" placeholder="ค้นหาด้วยรหัสพนักงาน, ชื่อ หรือ สังกัด... (ค้นหาได้ทุกวัน ไม่จำกัดเฉพาะช่วงวันที่ด้านบน)" class="w-full bg-[#241f1c] border border-white/10 rounded-xl pl-9 pr-9 py-2.5 text-sm outline-none focus:border-[#f5860f] text-white placeholder:text-white/30">
+            <button type="button" id="uniformTodaySearchClear" class="hidden absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-white/10 hover:bg-white/20 text-white/60 hover:text-white flex items-center justify-center transition">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
+          </div>
+          <div id="uniformTodayList" class="grid grid-cols-1 lg:grid-cols-2 gap-4"></div>
+        </div>
+
+        <!-- เบิกพิเศษ: ค้นหารหัสพนักงาน แล้วเพิ่มรายการสินค้า+ไซส์+จำนวนได้อิสระ (จากชีท "รายการสินค้าเบิก") -->
+        <div class="max-w-3xl mx-auto px-4 sm:px-6 py-5 hidden" id="specialWrap">
+          <div class="bg-[#241f1c] rounded-2xl border border-white/10 p-4 sm:p-5">
+            <label class="text-sm text-white/50 mb-2 block">ค้นหารหัสพนักงาน</label>
+            <div class="flex gap-2">
+              <input id="specialEmpCode" type="text" placeholder="กรอกรหัสพนักงาน..." class="flex-1 bg-[#1a1614] border border-white/10 rounded-xl px-4 py-2.5 outline-none focus:border-[#f5860f] transition placeholder:text-white/30">
+              <button id="btnSpecialSearch" class="bg-gradient-to-br from-accent to-accent2 text-[#1a1210] font-medium px-5 rounded-xl hover:brightness-110 transition">ค้นหา</button>
+            </div>
+
+            <div id="specialEmpInfo" class="hidden mt-4 fade-in">
+              <div class="bg-[#1a1614] rounded-xl p-4 flex items-center gap-3 border border-accent/30">
+                <div class="w-11 h-11 rounded-full bg-accent/20 flex items-center justify-center text-accent font-semibold shrink-0" id="specialEmpAvatar"></div>
+                <div>
+                  <p class="font-medium" id="specialEmpName"></p>
+                  <p class="text-white/50 text-sm" id="specialEmpDept"></p>
+                </div>
+              </div>
+            </div>
+
+            <div id="specialFormWrap" class="hidden mt-5 fade-in">
+              <label class="text-sm text-white/50 mb-2 block">เพิ่มรายการที่ต้องการเบิก</label>
+              <div class="grid grid-cols-1 sm:grid-cols-[2fr_1fr_80px_auto] gap-2">
+                <select id="specialAddItem" class="w-full bg-[#1a1614] border border-white/10 rounded-xl px-3 py-2.5 outline-none focus:border-[#f5860f] transition">
+                  <option value="" disabled selected>เลือกรายการ...</option>
+                </select>
+                <select id="specialAddSize" disabled class="w-full bg-[#1a1614] border border-white/10 rounded-xl px-3 py-2.5 outline-none focus:border-[#f5860f] transition">
+                  <option value="">ไม่มีไซส์</option>
+                </select>
+                <input id="specialAddQty" type="number" min="1" step="1" value="1" class="no-spinner w-full bg-[#1a1614] border border-white/10 rounded-xl px-3 py-2.5 outline-none focus:border-[#f5860f] transition text-center">
+                <button id="btnSpecialAddItem" class="bg-gradient-to-br from-accent to-accent2 text-[#1a1210] font-medium px-4 rounded-xl hover:brightness-110 transition whitespace-nowrap">+ เพิ่ม</button>
+              </div>
+
+              <div id="specialCartList" class="mt-4 space-y-2"></div>
+              <p id="specialCartEmpty" class="text-white/40 text-xs mt-3">ยังไม่ได้เพิ่มรายการ</p>
+
+              <button id="btnSubmitSpecialClaim" class="mt-5 w-full bg-gradient-to-br from-accent to-accent2 text-[#1a1210] font-semibold py-3 rounded-xl hover:brightness-110 transition">บันทึกการเบิกพิเศษ</button>
+
+              <div class="mt-5">
+                <p class="text-white/50 text-xs mb-2">ประวัติการเบิกพิเศษของพนักงานคนนี้</p>
+                <div id="specialHistoryList" class="space-y-1.5"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- แดชบอร์ด > เบิกพิเศษ: สรุปรายการเบิกพิเศษตามช่วงวันที่ที่เลือก (ค่าเริ่มต้น = วันนี้) จากชีท "เบิกพิเศษ" -->
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 py-5 hidden" id="specialTodayWrap">
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+            <div class="bg-[#241f1c] rounded-2xl p-4 border border-white/10">
+              <p class="text-white/50 text-xs">พนักงานที่เบิก</p>
+              <p class="text-xl font-semibold mt-1" id="specialTodayStatEmployees">0</p>
+            </div>
+            <div class="bg-[#241f1c] rounded-2xl p-4 border border-white/10">
+              <p class="text-white/50 text-xs">จำนวนรายการที่เบิก</p>
+              <p class="text-xl font-semibold mt-1 text-[#f5860f]" id="specialTodayStatItems">0</p>
+            </div>
+          </div>
+          <div class="relative mb-5" id="specialTodaySearchWrap">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-white/30 absolute left-3 top-1/2 -translate-y-1/2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="7"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/>
+            </svg>
+            <input type="text" id="specialTodaySearch" placeholder="ค้นหาด้วยรหัสพนักงาน, ชื่อ หรือ สังกัด... (ค้นหาได้ทุกวัน ไม่จำกัดเฉพาะช่วงวันที่ด้านบน)" class="w-full bg-[#241f1c] border border-white/10 rounded-xl pl-9 pr-9 py-2.5 text-sm outline-none focus:border-[#f5860f] text-white placeholder:text-white/30">
+            <button type="button" id="specialTodaySearchClear" class="hidden absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-white/10 hover:bg-white/20 text-white/60 hover:text-white flex items-center justify-center transition">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
+          </div>
+          <div id="specialTodayList" class="grid grid-cols-1 lg:grid-cols-2 gap-4"></div>
+        </div>
+
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 py-5 hidden" id="itemSummaryWrap">
+          <div class="flex items-center justify-between gap-3 flex-wrap mb-3">
+            <p class="text-white/50 text-xs" id="itemSummaryRange"></p>
+            <select id="itemSummaryFactory" class="bg-[#241f1c] border border-white/10 rounded-xl px-3 py-2 text-sm outline-none focus:border-[#f5860f] transition">
+              <option value="ALL">ทุกโรงงาน</option>
+              <option value="BANGCHAN">โรงงานบางชัน</option>
+              <option value="LADKRABANG">โรงงานลาดกระบัง (รวม 1+2)</option>
+            </select>
+          </div>
+          <div class="bg-[#241f1c] rounded-2xl overflow-hidden border border-white/10">
+            <table class="w-full text-sm">
+              <thead class="bg-[#1a1614] text-white/50 text-xs">
+                <tr>
+                  <th class="text-left px-4 py-3">ไอเทม</th>
+                  <th class="text-left px-4 py-3">ไซส์</th>
+                  <th class="text-right px-4 py-3">จำนวนที่ขาย</th>
+                  <th class="text-right px-4 py-3">ยอดขาย</th>
+                </tr>
+              </thead>
+              <tbody id="itemSummaryBody"></tbody>
+              <tfoot>
+                <tr class="border-t border-white/10 font-semibold">
+                  <td class="px-4 py-3" colspan="2">รวมทั้งหมด</td>
+                  <td class="px-4 py-3 text-right" id="itemSummaryTotalQty">0</td>
+                  <td class="px-4 py-3 text-right text-[#f5860f]" id="itemSummaryTotalAmount">฿0</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+
+        <!-- Update Stock: ข้อมูลลิงก์จากชีท "ราคาสินค้า" -->
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 py-5 hidden" id="stockWrap">
+          <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+            <p class="text-white/50 text-xs">อัปเดตสถานะสินค้า (มี/หมด) ? ข้อมูลเชื่อมกับชีท "ราคาสินค้า" โดยตรง เปลี่ยนที่นี่จะอัปเดตในชีททันที</p>
+            <input type="text" id="stockSearch" placeholder="ค้นหาชื่อสินค้า..." class="bg-[#241f1c] border border-white/10 rounded-xl px-3 py-2 text-sm outline-none focus:border-[#f5860f] transition w-56">
+          </div>
+          <div class="bg-[#241f1c] rounded-2xl overflow-hidden border border-white/10">
+            <table class="w-full text-sm">
+              <thead class="bg-[#1a1614] text-white/50 text-xs">
+                <tr>
+                  <th class="text-left px-4 py-3">รายการ</th>
+                  <th class="text-left px-4 py-3">ไซส์</th>
+                  <th class="text-right px-4 py-3">ราคา</th>
+                  <th class="text-center px-4 py-3">สถานะสต็อก</th>
+                </tr>
+              </thead>
+              <tbody id="stockBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="text-center text-white/30 text-xs py-6">
+    Copyright &copy; <span id="year"></span> Welfare Factory. All rights reserved.
+  </footer>
+
+  <!-- ============ MODAL: ใบผ่านชุดบรรจุ (แสดงในหน้าเดิม ไม่เปิดแท็บใหม่) ============ -->
+  <div id="uniformPassModal" class="hidden fixed inset-0 z-50 flex flex-col">
+    <div id="uniformPassToolbar" class="shrink-0 flex items-center gap-2 flex-wrap px-3 sm:px-4 py-2.5 sm:py-3 bg-[#1e1a18] shadow-lg">
+      <span class="text-white/70 text-[11px] sm:text-xs mr-auto basis-full sm:basis-auto order-first sm:order-none mb-1 sm:mb-0" id="uniformPassToolbarTitle">ตัวอย่างใบผ่านชุดบรรจุ</span>
+      <button id="btnCloseUniformPass" class="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs font-semibold bg-white/10 text-white hover:bg-white/20 transition">ปิด</button>
+      <button id="btnPrintUniformPass" class="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs font-semibold bg-transparent text-accent border border-accent/50 hover:brightness-110 transition"> พิมพ์</button>
+      <button id="btnDownloadUniformPassPdf" class="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs font-semibold bg-gradient-to-br from-accent to-accent2 text-[#1a1210] hover:brightness-110 transition"> ดาวน์โหลด PDF</button>
+    </div>
+    <div id="uniformPassScrollArea" class="flex-1 overflow-y-auto p-2 sm:p-4">
+      <div class="pv-page" id="uniformPassPageContent"></div>
+    </div>
+  </div>
+
+  <!-- ============ ADMIN LANDING MODAL (เลือกรายการหลังล็อกอิน Admin Store) ============ -->
+  <div id="dashLandingModal" class="hidden fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+    <div class="w-full max-w-[320px] sm:max-w-sm bg-[#2b1810] text-white/90 rounded-2xl border border-white/10 shadow-2xl max-h-[88vh] flex flex-col overflow-hidden">
+      <div class="px-5 pt-5 pb-4 border-b border-white/10 shrink-0">
+        <p class="text-[11px] tracking-widest text-white/45 font-semibold">WELFARE FACTORY</p>
+        <p class="text-lg font-semibold mt-1">Admin Store</p>
+        <p class="text-white/50 text-xs mt-1">เลือกรายการที่ต้องการทำ</p>
+      </div>
+      <div class="p-3 space-y-1 overflow-y-auto">
+        <button id="landingDashOrders" class="landing-nav-btn w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition text-left hover:bg-white/10">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-[18px] h-[18px] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3v18h18M8 17V9m4 8V5m4 12v-6"/></svg>
+          <span>คำสั่งซื้อวันนี้</span>
+        </button>
+        <button id="landingDashUniformToday" class="landing-nav-btn w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition text-left hover:bg-white/10">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-[18px] h-[18px] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+          <span>เบิกชุดบรรจุวันนี้</span>
+        </button>
+        <button id="landingUniform" class="landing-nav-btn w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition text-left hover:bg-white/10">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-[18px] h-[18px] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 2l3 3h6l3-3M6 2L3 6l3 3 2-2v13h8V7l2 2 3-3-3-4M11 5v3M13 5v3"/></svg>
+          <span>เบิกชุดบรรจุ</span>
+        </button>
+        <button id="landingDashSpecialToday" class="landing-nav-btn w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition text-left hover:bg-white/10">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-[18px] h-[18px] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+          <span>เบิกพิเศษวันนี้</span>
+        </button>
+        <button id="landingSpecial" class="landing-nav-btn w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition text-left hover:bg-white/10">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-[18px] h-[18px] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7h-9m9 0v10a2 2 0 01-2 2H9a2 2 0 01-2-2V7m9 0V5a2 2 0 00-2-2h-3a2 2 0 00-2 2v2M5 7h4"/></svg>
+          <span>เบิกพิเศษ</span>
+        </button>
+        <button id="landingItemSummary" class="landing-nav-btn w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition text-left hover:bg-white/10">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-[18px] h-[18px] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20.59 13.41L12 22l-9-9V3h10l8.59 8.59a2 2 0 010 2.82z"/><circle cx="7.5" cy="7.5" r="1.5" fill="currentColor" stroke="none"/></svg>
+          <span>สรุปยอดขายสินค้า</span>
+        </button>
+        <button id="landingStock" class="landing-nav-btn w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition text-left hover:bg-white/10">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-[18px] h-[18px] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8V21H3V8M1 3h22v5H1V3zM10 12h4"/></svg>
+          <span>Update Stock</span>
+        </button>
+      </div>
+      <div class="px-3 pb-3 pt-1 shrink-0">
+        <button id="landingCancel" class="w-full text-center text-xs text-white/40 hover:text-white/70 py-2 transition">ปิด</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+const CATEGORIES = [
+  { id: 'shirt', name: 'เสื้อ', icon: '' },
+  { id: 'pants', name: 'กางเกง', icon: '' },
+  { id: 'shoes', name: 'รองเท้า', icon: '' }
+];
+
+// รูปสินค้า: ใส่ URL รูปภาพ (เช่น ลิงก์ Google Drive แบบสาธารณะ) หรือ data URI ก็ได้ ถ้าไม่มีรูปให้ใส่ '' ระบบจะไปใช้ไอคอนหมวดหมู่แทน
+const CATALOG = [
+  { name: 'เสื้อโปโลสีขาว',            category: 'shirt', sizes: ['3S','2S','S','M','L','XL','2XL','3XL','4XL'], image: 'https://lh3.googleusercontent.com/d/1IgY8bM24iCF5oimKA5BLjsg0Pcd6QSDQ' },
+  { name: 'เสื้อโปโลสีกรม',            category: 'shirt', sizes: ['Sญ','Mญ','Lญ','XLญ','Sช','Mช','Lช','XLช','2XLช','3XLช','4XLช'], image: 'https://lh3.googleusercontent.com/d/18JBwQ-05cpQnVyh8BV4Z4UI_z3O82vMs' },
+  { name: 'เสื้อยืดสีกรมท่า (เสื้อกันเปื้อน)',  category: 'shirt', sizes: ['S','M','L','XL','2XL','3XL','4XL','5XL'], image: 'https://lh3.googleusercontent.com/d/1JYW-3jdV4vfKmh3PK6WX7r4nv6aHdFAS' },
+  { name: 'เสื้อยืดสีขาว',              category: 'shirt', sizes: ['S','M','L','XL','2XL','3XL','4XL','5XL'], image: 'https://lh3.googleusercontent.com/d/1dFrRWyDdBRLdAc3zjFA0ssRk5SeGT8Jp' },
+  { name: 'เสื้อยืดสีเลือดหมู',         category: 'shirt', sizes: ['S','M','L','XL','2XL','3XL','4XL','5XL'], image: 'https://lh3.googleusercontent.com/d/1kozALcsRP3y9fZ2KqHOxq3HGXUkgHKoT' },
+  { name: 'เสื้อ Jacket 30 ปี (สีดำชมพู)',         category: 'shirt', sizes: ['2S','S','M'], image: 'https://lh3.googleusercontent.com/d/1Z8oLkAHsKkEgUaTdglXrf_Wm6UgdmPWj' },
+  { name: 'เสื้อ Jacket 36 ปี (สีกรมท่า)',         category: 'shirt', sizes: ['2S','S','M','L'], image: 'https://lh3.googleusercontent.com/d/1sJ5cnEwLIp-NXnYRAN5pjBmyn3A1n7a7' },
+  { name: 'กางเกงสีเทา',                category: 'pants', sizes: ['S','M','L','XL','2XL','3XL','4XL'], image: 'https://lh3.googleusercontent.com/d/1AVfWhMNjMBYs2gjifNyVDWPpKfoq-ojZ' },
+  { name: 'กางเกงสีดำ',                 category: 'pants', sizes: ['S','M','L','XL','2XL','3XL','4XL'], image: 'https://lh3.googleusercontent.com/d/1a7weU8c9moocXZXR9nzFzg0uoSgGZ5Fn' },
+  { name: 'รองเท้าผ้าใบ',               category: 'shoes', sizes: ['34','35','36','37','38','39','40','41','42','43','44','45','46','47'], image: 'https://lh3.googleusercontent.com/d/1WJ1ADv0lXNNa7Y2m2yxX4Ki0qI5-TZmI' },
+  { name: 'รองเท้าเซฟตี้',              category: 'shoes', sizes: ['23','23.5','24','24.5','25','25.5','26','26.5','27','27.5','28','29'], image: 'https://lh3.googleusercontent.com/d/1XjSDbDcs9gV_QXghim8W4XACobzWkMdK' }
+];
+
+let PRICES = [];
+let currentEmployee = null;
+let cart = [];
+let activeCategory = 'shirt';
+let selectedMode = null;
+let dashboardPassword = null;
+let dashboardAuthLevel = null; // 'full' = เข้าได้ทุกเมนู | 'dashboard' = เข้าได้เฉพาะเมนูแดชบอร์ด
+let selectedPickupLocation = null;
+let selectedPhone = null;
+
+document.getElementById('year').textContent = new Date().getFullYear();
+
+function fmtMoney(n) { return '฿' + Number(n || 0).toLocaleString('th-TH', { minimumFractionDigits: 0 }); }
+
+// แปลงวันที่แบบ ISO (yyyy-MM-dd, ค.ศ.) ที่ได้จากช่อง input type="date" ให้เป็น วัน/เดือน/ปี (พ.ศ.) สำหรับแสดงผล
+function toThaiDateLabel(isoStr) {
+  if (!isoStr) return '';
+  const parts = String(isoStr).split('-');
+  if (parts.length !== 3) return isoStr;
+  const buddhistYear = Number(parts[0]) + 543;
+  return parts[2] + '/' + parts[1] + '/' + buddhistYear;
+}
+
+// ราคาสินค้าที่แสดง/บันทึกทั้งหมดถือเป็นราคารวม VAT 7% แล้ว ฟังก์ชันนี้ใช้ถอด VAT ออกมาดูเฉยๆ (ไม่กระทบราคาที่คิดจริง)
+function vatBreakdown(amountIncVat) {
+  const total = Number(amountIncVat) || 0;
+  const vat = Math.round((total * 7 / 107) * 100) / 100;
+  const exVat = Math.round((total - vat) * 100) / 100;
+  return { exVat: exVat, vat: vat, total: total };
+}
+
+/* ============ ใบผ่าน (แบบใบเสร็จรับเงิน/ใบกำกับภาษีอย่างย่อ - แผนกสวัสดิการ) ============ */
+// size: 'full' = ใบผ่าน A4 เต็มแผ่น 1 ใบ (ใช้ทั้งฝั่งพนักงานและแอดมิน)
+function buildPassVoucherHtml(pass, size) {
+  const v = vatBreakdown(pass.total);
+  const rowCount = size === 'full' ? 12 : 6;
+
+  const rowsHtml = pass.items.map(function (it, i) {
+    return `
+      <tr>
+        <td class="pv-td pv-center">${i + 1}</td>
+        <td class="pv-td pv-center">-</td>
+        <td class="pv-td">${it.item}${it.size ? ' (' + it.size + ')' : ''}</td>
+        <td class="pv-td pv-center">${it.qty}</td>
+        <td class="pv-td pv-right">${it.amount.toFixed(2)}</td>
+      </tr>`;
+  }).join('');
+
+  // เติมแถวว่างให้ครบตามจำนวนที่กำหนด ให้หน้าตาใกล้เคียงแบบฟอร์มจริง
+  let emptyRows = '';
+  for (let i = pass.items.length; i < rowCount; i++) {
+    emptyRows += `<tr><td class="pv-td">&nbsp;</td><td class="pv-td">&nbsp;</td><td class="pv-td">&nbsp;</td><td class="pv-td">&nbsp;</td><td class="pv-td">&nbsp;</td></tr>`;
+  }
+
+  return `
+    <div class="pv-voucher pv-${size}">
+      <p class="pv-company">บริษัท เพรซิเดนท์ เบเกอรี่ จำกัด (มหาชน)</p>
+      <p class="pv-addr">(สำนักงานใหญ่) 121/84-85 ชั้น 29 อาคารชุด อาร์ เอส ทาวเวอร์ ถนนรัชดาภิเษก</p>
+      <p class="pv-addr">แขวงดินแดง เขตดินแดง กรุงเทพฯ 10400 โทร.0-2209-3000 โทรสาร 0-2209-3091</p>
+      <p class="pv-addr">เลขประจำตัวผู้เสียภาษี 0107545000144</p>
+      <div class="pv-recvrow">
+        <span>ผู้รับเงิน : ${pass.empName}</span>
+        <span>รหัสพนักงาน : ${pass.empCode}</span>
+        <span>สังกัด : ${pass.empDept}</span>
+      </div>
+      <p class="pv-title">ใบเสร็จรับเงิน/ใบกำกับภาษีอย่างย่อ (ใบผ่าน แผนกสวัสดิการ)</p>
+      <div class="pv-recvrow">
+        <span>วันที่ ${pass.dateStr}</span>
+        <span>เลขที่ ${pass.orderId}</span>
+      </div>
+      <table class="pv-table">
+        <thead><tr><th class="pv-c-idx">ลำดับ</th><th class="pv-c-code">รหัส</th><th>รายการ</th><th class="pv-c-qty">จำนวน</th><th class="pv-c-amt">จำนวนเงิน</th></tr></thead>
+        <tbody>${rowsHtml}${emptyRows}</tbody>
+      </table>
+      <div class="pv-summary">
+        <div class="pv-sumrow"><span>รวมเงิน</span><span>${v.total.toFixed(2)}</span></div>
+        <div class="pv-sumrow"><span>ภาษีมูลค่าเพิ่ม 7%</span><span>${v.vat.toFixed(2)}</span></div>
+        <div class="pv-sumrow"><span>มูลค่าสินค้า</span><span>${v.exVat.toFixed(2)}</span></div>
+        <div class="pv-totalbox"># ราคารวมภาษีมูลค่าเพิ่ม&nbsp; ${v.total.toFixed(2)} &nbsp;บาท #</div>
+      </div>
+      <div class="pv-signrow">
+        <span>ผู้รับของ ${pass.empName}</span>
+        <span>ผู้ส่งของ คุณนิรันดร์</span>
+      </div>
+      <p class="pv-note">หมายเหตุ: ใบนี้ใช้เป็นหลักฐานผ่านสินค้าออกจากโรงงาน / รับเปลี่ยนสินค้าได้ภายใน 5 วัน</p>
+    </div>`;
+}
+
+/**
+ * mode: 'employee' / 'admin' -> ใบผ่าน 1 ใบ ขนาด A4 เต็มแผ่น (ทั้งสองฝั่งใช้ฟอร์มเดียวกัน)
+ *
+ * เปิดเป็นหน้าต่าง "ตัวอย่างก่อนพิมพ์" (preview) พร้อมปุ่ม พิมพ์ / ดาวน์โหลด PDF
+ * แทนการสั่งพิมพ์ทันทีแบบเดิม (window.print() อัตโนมัติ)
+ */
+function openPassPrintWindow(pass, mode, win) {
+  const size = 'full';
+  const count = 1;
+
+  let vouchersHtml = '';
+  for (let i = 0; i < count; i++) vouchersHtml += buildPassVoucherHtml(pass, size);
+
+  // win: หน้าต่างที่เปิดไว้ล่วงหน้าแล้ว (ตอนผู้ใช้กดปุ่ม) เพื่อไม่ให้ iOS Safari บล็อกป็อปอัป
+  if (!win) win = window.open('', '_blank');
+  if (!win) { Swal.fire({ icon: 'warning', title: 'เบราว์เซอร์บล็อกป็อปอัป', text: 'กรุณาอนุญาตป็อปอัปสำหรับเว็บนี้แล้วลองใหม่', background: '#1e1a18', color: '#fff' }); return; }
+
+  const pdfFileName = 'ใบผ่าน_' + pass.orderId + '.pdf';
+
+  win.document.write(`<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ใบผ่าน ${pass.orderId}</title>
+    <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"><\/script>
+    <style>
+      @page { size: A4; margin: 8mm; }
+      * { box-sizing: border-box; }
+      html, body { background:#e9e9e9; color:#000; margin:0; padding:0; }
+      body { font-family: 'Kanit','Noto Sans Thai',sans-serif; }
+
+      /* ===== แถบเครื่องมือ (ไม่ถูกพิมพ์/ไม่อยู่ใน PDF) ===== */
+      .pv-toolbar {
+        position: sticky; top: 0; z-index: 10;
+        display:flex; align-items:center; justify-content:center; gap:10px;
+        padding:12px 10px; background:#1e1a18; box-shadow:0 2px 8px rgba(0,0,0,0.25);
+      }
+      .pv-toolbar-title { color:#fff; font-size:13px; opacity:0.7; margin-right:auto; padding-left:6px; }
+      .pv-btn {
+        appearance:none; border:none; cursor:pointer; font-family:inherit;
+        font-size:13px; font-weight:600; padding:9px 18px; border-radius:999px;
+        display:inline-flex; align-items:center; gap:6px; transition:filter .15s ease;
+      }
+      .pv-btn:hover { filter:brightness(1.1); }
+      .pv-btn:disabled { opacity:0.6; cursor:default; filter:none; }
+      .pv-btn-primary { background:linear-gradient(135deg,#f5860f,#ffb347); color:#1a1210; }
+      .pv-btn-outline { background:transparent; color:#f5860f; border:1px solid rgba(245,134,15,0.5); }
+
+      .pv-scrollarea { padding:16px 0 40px; display:flex; justify-content:center; }
+      .pv-page { width:210mm; background:#fff; box-shadow:0 4px 18px rgba(0,0,0,0.25); padding:8mm; }
+      .pv-page-inner { width:194mm; margin:0 auto; }
+
+      .pv-voucher { border:1px solid #000; padding:4mm 5mm; background:#fff; }
+      .pv-full { width:100%; min-height:270mm; font-size:13px; }
+      .pv-half { width:100%; height:131mm; font-size:10.5px; overflow:hidden; }
+      .pv-half + .pv-half { margin-top:4mm; border-top:1px dashed #666; }
+      .pv-company { text-align:center; font-weight:700; margin:0 0 1mm; font-size:1.2em; }
+      .pv-addr { text-align:center; margin:0; font-size:0.8em; color:#222; }
+      .pv-recvrow { display:flex; justify-content:space-between; gap:6mm; margin:2mm 0; font-size:0.95em; }
+      .pv-title { text-align:center; margin:2mm 0; font-weight:600; }
+      .pv-table { width:100%; border-collapse:collapse; margin-top:1mm; }
+      .pv-table th, .pv-table td { border:1px solid #000; padding:1mm 2mm; font-size:0.85em; }
+      .pv-c-idx { width:8%; } .pv-c-code { width:12%; } .pv-c-qty { width:12%; } .pv-c-amt { width:20%; }
+      .pv-center { text-align:center; } .pv-right { text-align:right; }
+      .pv-summary { margin-top:2mm; }
+      .pv-sumrow { display:flex; justify-content:flex-end; gap:8mm; padding:0.5mm 0; font-size:0.9em; }
+      .pv-sumrow span:last-child { width:25mm; text-align:right; }
+      .pv-totalbox { margin-top:1.5mm; text-align:center; font-weight:700; border-top:1px solid #000; border-bottom:1px solid #000; padding:1mm 0; }
+      .pv-signrow { display:flex; justify-content:space-between; margin-top:4mm; font-size:0.85em; }
+      .pv-note { margin-top:2mm; font-size:0.75em; color:#333; }
+
+      @media print {
+        html, body { background:#fff; }
+        .pv-toolbar { display:none !important; }
+        .pv-scrollarea { padding:0; }
+        .pv-page { width:210mm; box-shadow:none; margin:0; }
+      }
+    </style></head>
+    <body>
+    <div class="pv-toolbar">
+      <span class="pv-toolbar-title">ตัวอย่างใบผ่าน ${pass.orderId}</span>
+      <button id="btnPrintPass" class="pv-btn pv-btn-outline">??? พิมพ์</button>
+      <button id="btnDownloadPdfPass" class="pv-btn pv-btn-primary">?? ดาวน์โหลด PDF</button>
+    </div>
+    <div class="pv-scrollarea">
+      <div class="pv-page" id="pvPageContent"><div class="pv-page-inner">${vouchersHtml}</div></div>
+    </div>
+    <script>
+      document.getElementById('btnPrintPass').addEventListener('click', function () {
+        window.print();
+      });
+      document.getElementById('btnDownloadPdfPass').addEventListener('click', function () {
+        const btn = document.getElementById('btnDownloadPdfPass');
+        const oldText = btn.innerHTML;
+        btn.innerHTML = 'กำลังสร้าง PDF...'; btn.disabled = true;
+        const opt = {
+          margin: 0,
+          filename: ${JSON.stringify(pdfFileName)},
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+        html2pdf().set(opt).from(document.getElementById('pvPageContent')).save().then(function () {
+          btn.innerHTML = oldText; btn.disabled = false;
+        }).catch(function () {
+          btn.innerHTML = oldText; btn.disabled = false;
+        });
+      });
+    <\/script>
+    </body></html>`);
+  win.document.close();
+}
+
+/* ============ ใบผ่านชุดบรรจุ (เบิกชุดบรรจุ - แผนกสวัสดิการ) ============ */
+// size: 'full' = ใบผ่าน A4 เต็มแผ่น 1 ใบ (ใช้ทั้งฝั่งพนักงานและแอดมิน)
+// รูปแบบอิงตามฟอร์มกระดาษจริงของแผนกสวัสดิการ: รหัส / ชื่อ-นามสกุล / วันที่ / ฝ่าย / ส่วน / แผนก (ดึงจากชีท "รายชื่อ" คอลัมน์ D/E/F ผ่าน pass.division/section/dept)
+// ตาราง จำนวน-รายการ, แถว "บรรจุ [วันที่บรรจุ]" กลางตาราง, แถวหมายเหตุท้ายตาราง
+function buildUniformPassVoucherHtml(pass, size) {
+  const isFull = size === 'full';
+
+  // ไซส์มาจากคอลัมน์ "Size" แยกต่างหากจากเซิร์ฟเวอร์แล้ว (it.size) เพื่อโชว์ "Size :" แยกบรรทัดแบบฟอร์มตัวอย่าง
+  // เผื่อข้อมูลเก่าก่อนแยกคอลัมน์ Size ที่ยังเก็บเป็น "ชื่อ (ไซส์)" รวมกันอยู่ ให้ fallback แยกด้วย regex แทน
+  const splitItem = function (text) {
+    const m = /^(.*)\s\(([^()]+)\)\s*$/.exec(text || '');
+    return m ? { name: m[1], sizeVal: m[2] } : { name: text || '', sizeVal: '' };
+  };
+
+  const itemRowsHtml = pass.items.map(function (it) {
+    let name = it.item || '';
+    let sizeVal = it.size || '';
+    if (!sizeVal) {
+      const parts = splitItem(name);
+      name = parts.name; sizeVal = parts.sizeVal;
+    }
+    const sizeHtml = sizeVal ? ` <span class="pv-sizelabel">Size :</span> <span class="pv-underline">${sizeVal}</span>` : '';
+    return `<tr><td class="pv-td pv-center">${it.qty} ตัว</td><td class="pv-td"><span class="pv-underline">${name}</span>${sizeHtml}</td></tr>`;
+  }).join('');
+
+  const usedRows = pass.items.length;
+  const totalRows = Math.max(isFull ? 10 : 5, usedRows + 3);
+  // แทรกแถว "บรรจุ [วันที่]" ไว้ราวๆ กลางตาราง (ให้ใกล้เคียงฟอร์มตัวอย่าง) และเว้นแถวสุดท้ายไว้ให้หมายเหตุเสมอ
+  const confirmRowIndex = Math.min(totalRows - 2, Math.max(usedRows + 1, Math.floor(totalRows * 0.6)));
+
+  let bodyRows = itemRowsHtml;
+  for (let rowIdx = usedRows; rowIdx < totalRows; rowIdx++) {
+    if (rowIdx === totalRows - 1) {
+      bodyRows += `<tr><td colspan="2" class="pv-noterow">หมายเหตุ : รับเปลี่ยนสินค้าได้ภายใน 5 วัน</td></tr>`;
+    } else if (rowIdx === confirmRowIndex && pass.confirmDate) {
+      bodyRows += `<tr><td colspan="2" class="pv-confirmrow">บรรจุ ${pass.confirmDate}</td></tr>`;
+    } else {
+      bodyRows += `<tr><td class="pv-td">&nbsp;</td><td class="pv-td">&nbsp;</td></tr>`;
+    }
+  }
+
+  return `
+    <div class="pv-voucher pv-${size}">
+      <p class="pv-company">บริษัท เพรซิเดนท์ เบเกอรี่ จำกัด (มหาชน)</p>
+      <p class="pv-formtitle">ใบผ่านแผนกสวัสดิการ</p>
+      <div class="pv-fieldrow">
+        <span class="pv-flabel">รหัส</span>
+        <span class="pv-fvalue pv-underline">${pass.empCode}</span>
+      </div>
+      <div class="pv-fieldrow">
+        <span class="pv-flabel">ชื่อ-นามสกุล</span>
+        <span class="pv-fvalue pv-underline pv-grow">${pass.empName}</span>
+      </div>
+      <div class="pv-fieldrow">
+        <span class="pv-flabel">วันที่</span>
+        <span class="pv-fvalue pv-underline pv-grow">${pass.dateStr}</span>
+      </div>
+      <div class="pv-tagsrow">
+        <span class="pv-flabel">ฝ่าย</span>
+        <span class="pv-underline">${pass.division || '-'}</span>
+        <span class="pv-slash">/</span>
+        <span class="pv-flabel">ส่วน</span>
+        <span class="pv-underline">${pass.section || '-'}</span>
+        <span class="pv-slash">/</span>
+        <span class="pv-flabel">แผนก</span>
+        <span class="pv-underline">${pass.dept || '-'}</span>
+      </div>
+      <table class="pv-formtable">
+        <thead><tr><th class="pv-c-qty">จำนวน</th><th>รายการ</th></tr></thead>
+        <tbody>${bodyRows}</tbody>
+      </table>
+    </div>`;
+}
+
+let html2pdfLoadPromise = null;
+// โหลด html2pdf.js แบบ lazy (โหลดครั้งแรกที่กดดาวน์โหลด PDF เท่านั้น) แล้ว cache ผลลัพธ์ไว้ใช้ครั้งถัดไป
+function loadHtml2Pdf() {
+  if (window.html2pdf) return Promise.resolve();
+  if (html2pdfLoadPromise) return html2pdfLoadPromise;
+  html2pdfLoadPromise = new Promise(function (resolve, reject) {
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js';
+    s.onload = resolve;
+    s.onerror = reject;
+    document.head.appendChild(s);
+  });
+  return html2pdfLoadPromise;
+}
+
+/**
+ * mode: 'employee' / 'admin' -> ใบผ่าน 1 ใบ ขนาด A4 เต็มแผ่น (ทั้งสองฝั่งใช้ฟอร์มเดียวกัน)
+ * แสดงเป็น modal เต็มจอในหน้าเดิม (ไม่เปิดแท็บ/หน้าต่างใหม่) เพราะการเปิดแท็บใหม่แล้วเขียนเนื้อหาลงไป
+ * (ไม่ว่าจะด้วย document.write หรือ Blob URL) เจอปัญหาขึ้นหน้าขาวเปล่าในเบราว์เซอร์/เว็บวิวของเครื่องที่ใช้งานอยู่
+ */
+function openUniformPassPrintWindow(pass, mode) {
+  const size = 'full';
+  const count = 1;
+
+  let vouchersHtml = '';
+  for (let i = 0; i < count; i++) vouchersHtml += buildUniformPassVoucherHtml(pass, size);
+
+  document.getElementById('uniformPassToolbarTitle').textContent = 'ตัวอย่างใบผ่านชุดบรรจุ ' + pass.empCode;
+  document.getElementById('uniformPassPageContent').innerHTML = vouchersHtml;
+  document.getElementById('uniformPassModal').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeUniformPassModal() {
+  document.getElementById('uniformPassModal').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+document.getElementById('btnCloseUniformPass').addEventListener('click', closeUniformPassModal);
+document.getElementById('btnPrintUniformPass').addEventListener('click', function () { window.print(); });
+document.getElementById('btnDownloadUniformPassPdf').addEventListener('click', function () {
+  const btn = document.getElementById('btnDownloadUniformPassPdf');
+  const oldText = btn.innerHTML;
+  btn.innerHTML = 'กำลังสร้าง PDF...'; btn.disabled = true;
+  loadHtml2Pdf().then(function () {
+    const titleText = document.getElementById('uniformPassToolbarTitle').textContent || 'ใบผ่านชุดบรรจุ';
+    const opt = {
+      margin: 0,
+      filename: titleText.replace('ตัวอย่าง', '').trim() + '.pdf',
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+    return html2pdf().set(opt).from(document.getElementById('uniformPassPageContent')).save();
+  }).then(function () {
+    btn.innerHTML = oldText; btn.disabled = false;
+  }).catch(function () {
+    btn.innerHTML = oldText; btn.disabled = false;
+    Swal.fire({ icon: 'error', title: 'สร้าง PDF ไม่สำเร็จ', text: 'กรุณาลองใหม่ หรือใช้ปุ่มพิมพ์แทน', background: '#1e1a18', color: '#fff' });
+  });
+});
+
+function findProduct(itemName, size) {
+  const norm = s => (s || '').trim().toLowerCase();
+  let hit = PRICES.find(p => norm(p.item) === norm(itemName) && norm(p.size) === norm(size));
+  if (hit) return hit;
+  hit = PRICES.find(p => norm(p.item) === norm(itemName) && norm(p.size) === '');
+  if (hit) return hit;
+  const base = s => norm(s).replace(/\s*\(.*?\)\s*/g, '');
+  hit = PRICES.find(p => base(p.item) === base(itemName) && (norm(p.size) === norm(size) || norm(p.size) === ''));
+  return hit || null;
+}
+
+function loadPrices() {
+  google.script.run.withSuccessHandler(function (data) {
+    PRICES = data || [];
+    renderCategoryTabs();
+    renderProductGrid();
+  }).withFailureHandler(function (err) {
+    Swal.fire({ icon: 'error', title: 'โหลดราคาสินค้าไม่สำเร็จ', text: err.message, background: '#1e1a18', color: '#fff' });
+  }).getProductPrices();
+}
+loadPrices();
+
+function loadPickupLocations() {
+  google.script.run.withSuccessHandler(function (locations) {
+    const select = document.getElementById('pickupLocation');
+    (locations || []).forEach(function (loc) {
+      const opt = document.createElement('option');
+      opt.value = loc; opt.textContent = loc;
+      select.appendChild(opt);
+    });
+  }).getPickupLocations();
+}
+loadPickupLocations();
+
+document.getElementById('btnFetchEmp').addEventListener('click', fetchEmployee);
+document.getElementById('empCode').addEventListener('keydown', function (e) { if (e.key === 'Enter') fetchEmployee(); });
+
+function fetchEmployee() {
+  const code = document.getElementById('empCode').value.trim();
+  if (!code) { Swal.fire({ icon: 'warning', title: 'กรุณากรอกรหัสพนักงาน', background: '#1e1a18', color: '#fff', confirmButtonColor: '#f5860f' }); return; }
+  Swal.fire({ title: 'กำลังค้นหา...', background: '#1e1a18', color: '#fff', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+
+  google.script.run.withSuccessHandler(function (res) {
+    Swal.close();
+    if (!res.found) {
+      Swal.fire({ icon: 'error', title: 'ไม่พบข้อมูล', text: res.message || 'ไม่พบรหัสพนักงานนี้', background: '#1e1a18', color: '#fff', confirmButtonColor: '#f5860f' });
+      document.getElementById('empInfo').classList.add('hidden');
+      return;
+    }
+    currentEmployee = res; selectedPickupLocation = null; selectedPhone = null;
+    document.getElementById('empAvatar').textContent = (res.name || '?').charAt(0);
+    document.getElementById('empName').textContent = res.name;
+    document.getElementById('empDept').textContent = (res.deptLabel || res.dept) + (res.position ? ' - ' + res.position : '');
+    document.getElementById('empInfo').classList.remove('hidden');
+    Swal.fire({ toast: true, position: 'top', icon: 'success', title: 'ยินดีต้อนรับคุณ ' + res.name, showConfirmButton: false, timer: 1200, background: '#1e1a18', color: '#fff' });
+
+    if (selectedMode === 'status') {
+      document.getElementById('pickupLocationWrap').classList.add('hidden');
+      document.getElementById('employeeSection').classList.add('hidden');
+      document.getElementById('statusSection').classList.remove('hidden');
+      loadOrderStatus(currentEmployee.code);
+      loadUniformStatus(currentEmployee.code);
+    } else {
+      document.getElementById('pickupLocation').value = '';
+      document.getElementById('empPhone').value = '';
+      document.getElementById('pickupLocationWrap').classList.remove('hidden');
+    }
+  }).withFailureHandler(function (err) {
+    Swal.close();
+    Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: err.message, background: '#1e1a18', color: '#fff' });
+  }).getEmployeeByCode(code);
+}
+
+document.getElementById('btnContinueToCatalog').addEventListener('click', function () {
+  const loc = document.getElementById('pickupLocation').value;
+  const phone = document.getElementById('empPhone').value.trim();
+  if (!loc) { Swal.fire({ icon: 'warning', title: 'กรุณาเลือกสถานที่รับสินค้า', background: '#1e1a18', color: '#fff', confirmButtonColor: '#f5860f' }); return; }
+  if (!phone) { Swal.fire({ icon: 'warning', title: 'กรุณากรอกเบอร์โทรศัพท์', background: '#1e1a18', color: '#fff', confirmButtonColor: '#f5860f' }); return; }
+  
+  selectedPickupLocation = loc;
+  selectedPhone = phone;
+  
+  document.getElementById('employeeSection').classList.add('hidden');
+  document.getElementById('catalogSection').classList.remove('hidden');
+});
+
+function clearSession() {
+  currentEmployee = null;
+  cart = [];
+  selectedPickupLocation = null;
+  selectedPhone = null;
+  document.getElementById('empCode').value = '';
+  document.getElementById('empInfo').classList.add('hidden');
+  document.getElementById('pickupLocationWrap').classList.add('hidden');
+  document.getElementById('pickupLocation').value = '';
+  document.getElementById('empPhone').value = '';
+  updateCart();
+}
+
+document.getElementById('btnModeOrder').addEventListener('click', function () {
+  selectedMode = 'order';
+  clearSession();
+  document.getElementById('employeeSectionTitle').textContent = 'กรอกรหัสพนักงานเพื่อเริ่มสั่งซื้อ';
+  document.getElementById('modeSelect').classList.add('hidden'); document.getElementById('employeeSection').classList.remove('hidden');
+});
+document.getElementById('btnModeStatus').addEventListener('click', function () {
+  selectedMode = 'status';
+  clearSession();
+  document.getElementById('employeeSectionTitle').textContent = 'กรอกรหัสพนักงานเพื่อเช็คสถานะสินค้า';
+  document.getElementById('modeSelect').classList.add('hidden'); document.getElementById('employeeSection').classList.remove('hidden');
+});
+document.getElementById('btnBackToMode').addEventListener('click', function () {
+  clearSession();
+  document.getElementById('employeeSection').classList.add('hidden'); document.getElementById('modeSelect').classList.remove('hidden');
+});
+document.getElementById('btnBackFromCatalog').addEventListener('click', function () {
+  document.getElementById('catalogSection').classList.add('hidden'); document.getElementById('employeeSection').classList.remove('hidden');
+});
+document.getElementById('btnBackFromStatus').addEventListener('click', function () {
+  document.getElementById('statusSection').classList.add('hidden'); document.getElementById('employeeSection').classList.remove('hidden');
+});
+
+function loadOrderStatus(code) {
+  const wrap = document.getElementById('statusList');
+  wrap.innerHTML = '<p class="text-white/40 text-center py-8">กำลังโหลดข้อมูล...</p>';
+  google.script.run.withSuccessHandler(function (res) {
+    if (!res.success) { wrap.innerHTML = '<p class="text-red-400 text-center py-8">' + (res.message || 'เกิดข้อผิดพลาด') + '</p>'; return; }
+    renderOrderStatusList(res);
+  }).getOrderStatusByCode(code);
+}
+
+function renderOrderStatusList(data) {
+  const wrap = document.getElementById('statusList');
+  if (!data.orders || data.orders.length === 0) { wrap.innerHTML = '<p class="text-white/40 text-center py-8">ยังไม่มีประวัติคำสั่งซื้อ</p>'; return; }
+
+  const statuses = data.statuses;
+  const cancelledStatus = data.cancelledStatus;
+
+  wrap.innerHTML = data.orders.map(function (o) {
+    const isCancelled = o.status === cancelledStatus;
+    let stepIdx = statuses.indexOf(o.status); if (stepIdx < 0) stepIdx = 0;
+
+    const stepper = statuses.map(function (s, i) {
+      const done = i <= stepIdx;
+      const line = i < statuses.length - 1 ? `<div class="flex-1 h-[2px] mt-3.5 ${i < stepIdx ? 'bg-accent' : 'bg-white/10'}"></div>` : '';
+      return `
+        <div class="flex items-center ${i < statuses.length - 1 ? 'flex-1' : ''}">
+          <div class="flex flex-col items-center text-center w-16 shrink-0">
+            <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold ${done ? 'bg-accent text-[#1a1210]' : 'bg-panel2 border border-white/10 text-white/30'}">${i + 1}</div>
+            <p class="text-[10px] mt-1 leading-tight ${done ? 'text-accent' : 'text-white/30'}">${s}</p>
+          </div>
+          ${line}
+        </div>`;
+    }).join('');
+
+    const itemsList = o.items.map(function (it) { return `<span class="block">${it.item} (${it.size}) x ${it.qty}</span>`; }).join('');
+    
+    const adminNoteHtml = o.adminNote 
+      ? `<div class="mt-3 p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-xs text-red-400 font-medium">หมายเหตุแอดมิน: ${o.adminNote}</div>` 
+      : '';
+
+    const canDownloadPass = !isCancelled && o.status === statuses[3];
+    const passBtnHtml = canDownloadPass
+      ? `<button data-order-id="${o.orderId}" class="pass-download-btn mt-3 w-full bg-gradient-to-br from-accent to-accent2 text-[#1a1210] font-medium py-2 rounded-xl text-xs hover:brightness-110 transition"> ดาวน์โหลด/พิมพ์ใบผ่าน</button>`
+      : '';
+
+    return `
+      <div class="bg-panel2 rounded-2xl p-4 ${isCancelled ? 'border border-red-500/30' : ''}">
+        <div class="flex items-center justify-between mb-1">
+          <div><p class="font-medium text-sm">เลขที่ ${o.orderId}</p><p class="text-white/40 text-xs">${o.timestamp}</p></div>
+          <div class="text-right">
+            <span class="text-accent font-semibold text-sm block ${isCancelled ? 'line-through text-white/40' : ''}">${fmtMoney(o.total)}</span>
+            <span class="text-[10px] text-white/40">${(function(){ const v = vatBreakdown(o.total); return 'ก่อน VAT ' + fmtMoney(v.exVat) + ' + VAT ' + fmtMoney(v.vat); })()}</span>
+          </div>
+        </div>
+        ${o.pickupLocation ? `<p class="text-white/40 text-xs mb-3">รับที่ ${o.pickupLocation}</p>` : '<div class="mb-3"></div>'}
+        ${isCancelled ? `<p class="text-red-400 text-xs font-medium mb-4">( ${o.status} )</p>` : `<div class="flex items-start mb-4">${stepper}</div>`}
+        <div class="text-xs text-white/50 space-y-0.5 border-t border-white/5 pt-3">${itemsList}</div>
+        ${adminNoteHtml}
+        ${passBtnHtml}
+      </div>`;
+  }).join('');
+
+  wrap.querySelectorAll('.pass-download-btn').forEach(btn => {
+    btn.addEventListener('click', function () {
+      const orderId = btn.dataset.orderId;
+      const oldText = btn.textContent; btn.textContent = 'กำลังโหลด...'; btn.disabled = true;
+      // เปิดหน้าต่างว่างทันทีตอนกด (ยังอยู่ในจังหวะ user gesture) เพื่อไม่ให้ iOS Safari บล็อกป็อปอัป
+      const printWin = window.open('', '_blank');
+      google.script.run.withSuccessHandler(function (res) {
+        btn.textContent = oldText; btn.disabled = false;
+        if (!res.success) {
+          if (printWin) printWin.close();
+          Swal.fire({ icon: 'error', title: 'ไม่สามารถโหลดใบผ่านได้', text: res.message, background: '#1e1a18', color: '#fff' }); return;
+        }
+        openPassPrintWindow(res.pass, 'employee', printWin);
+      }).withFailureHandler(function (err) {
+        btn.textContent = oldText; btn.disabled = false;
+        if (printWin) printWin.close();
+        Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: err.message, background: '#1e1a18', color: '#fff' });
+      }).getEmployeePassData(currentEmployee.code, orderId);
+    });
+  });
+}
+
+function loadUniformStatus(code) {
+  const outerWrap = document.getElementById('uniformStatusWrap');
+  const wrap = document.getElementById('uniformStatusList');
+  outerWrap.classList.add('hidden');
+  google.script.run.withSuccessHandler(function (res) {
+    if (!res.success) return; // ไม่พบพนักงาน/ผิดพลาด -> ไม่ต้องโชว์บล็อกนี้ (สถานะคำสั่งซื้อปกติจะแจ้ง error ให้แล้ว)
+    if (!res.claims || res.claims.length === 0) return; // ไม่มีประวัติเบิกชุดบรรจุ -> ไม่ต้องโชว์บล็อกนี้
+    outerWrap.classList.remove('hidden');
+    renderUniformStatusList(res, code);
+  }).getUniformStatusByCode(code);
+}
+
+function renderUniformStatusList(data, code) {
+  const wrap = document.getElementById('uniformStatusList');
+  wrap.innerHTML = data.claims.map(function (c, idx) {
+    const hasStatus = !!c.status;
+    const statusHtml = hasStatus
+      ? `<span class="text-accent text-xs font-medium">${c.status}</span>`
+      : `<span class="text-white/40 text-xs">รอดำเนินการ</span>`;
+    const passBtnHtml = c.canDownloadPass
+      ? `<button data-updated-at="${c.updatedAt}" class="uniform-pass-download-btn mt-3 w-full bg-gradient-to-br from-accent to-accent2 text-[#1a1210] font-medium py-2 rounded-xl text-xs hover:brightness-110 transition"> ดาวน์โหลด/พิมพ์ใบผ่าน</button>`
+      : '';
+    return `
+      <div class="bg-panel2 rounded-2xl p-4">
+        <div class="flex items-center justify-between mb-1">
+          <p class="font-medium text-sm">การเบิกครั้งที่ ${idx + 1}</p>
+          ${statusHtml}
+        </div>
+        <p class="text-white/40 text-xs mb-3">${c.updatedAt}</p>
+        <div class="text-xs text-white/50 border-t border-white/5 pt-3">${c.itemsLabel}</div>
+        ${passBtnHtml}
+      </div>`;
+  }).join('');
+
+  wrap.querySelectorAll('.uniform-pass-download-btn').forEach(btn => {
+    btn.addEventListener('click', function () {
+      const updatedAt = btn.dataset.updatedAt;
+      const oldText = btn.textContent; btn.textContent = 'กำลังโหลด...'; btn.disabled = true;
+      google.script.run.withSuccessHandler(function (res) {
+        btn.textContent = oldText; btn.disabled = false;
+        if (!res.success) {
+          Swal.fire({ icon: 'error', title: 'ไม่สามารถโหลดใบผ่านได้', text: res.message, background: '#1e1a18', color: '#fff' }); return;
+        }
+        openUniformPassPrintWindow(res.pass, 'employee');
+      }).withFailureHandler(function (err) {
+        btn.textContent = oldText; btn.disabled = false;
+        Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: err.message, background: '#1e1a18', color: '#fff' });
+      }).getEmployeeUniformPassData(code, updatedAt);
+    });
+  });
+}
+
+function renderCategoryTabs() {
+  const wrap = document.getElementById('categoryTabs'); wrap.innerHTML = '';
+  CATEGORIES.forEach(cat => {
+    const btn = document.createElement('button');
+    btn.className = 'tab-pill shrink-0 px-4 py-2 rounded-full text-sm font-medium bg-panel2 border border-white/10 transition' + (cat.id === activeCategory ? ' active' : '');
+    btn.innerHTML = `<span class="mr-1">${cat.icon}</span>${cat.name}`;
+    btn.addEventListener('click', () => { activeCategory = cat.id; renderCategoryTabs(); renderProductGrid(); });
+    wrap.appendChild(btn);
+  });
+}
+
+function renderProductGrid() {
+  const grid = document.getElementById('productGrid'); grid.innerHTML = '';
+  const items = CATALOG.filter(p => p.category === activeCategory);
+  items.forEach((product) => {
+    const card = document.createElement('div');
+    const isProductOut = isProductFullyOutOfStock(product);
+    card.className = 'card-glass rounded-2xl p-4 transition flex flex-col items-center text-center'
+      + (isProductOut ? ' opacity-40 grayscale cursor-not-allowed' : ' cursor-pointer hover:border-accent/50');
+    const catIcon = CATEGORIES.find(c => c.id === product.category).icon;
+    const thumbHtml = product.image
+      ? `<div class="w-20 h-20 rounded-xl bg-panel2 border border-white/10 overflow-hidden mb-3"><img src="${product.image}" alt="${product.name}" class="w-full h-full object-cover"></div>`
+      : `<div class="w-14 h-14 rounded-full bg-panel2 border border-white/10 flex items-center justify-center mb-3 text-2xl">${catIcon}</div>`;
+    card.innerHTML = `
+      ${thumbHtml}
+      <p class="font-medium text-sm mb-1">${product.name}</p>
+      <p class="text-[11px] text-white/40 mb-3">${isProductOut ? 'สินค้าหมดชั่วคราว' : 'กดเพื่อเลือกไซส์'}</p>
+      <button class="w-full bg-white/5 text-white/80 text-xs font-medium py-2 rounded-xl border border-white/10 transition pointer-events-none">${isProductOut ? 'สินค้าหมด' : 'เลือกสินค้า'}</button>
+    `;
+    if (!isProductOut) card.addEventListener('click', () => openProductModal(product));
+    grid.appendChild(card);
+  });
+}
+
+// เช็คว่าสินค้าตัวนี้หมดสต็อกทุกไซส์หรือไม่ (อิงจากคอลัมน์ "สต็อก" ในชีท "ราคาสินค้า")
+// ถ้าหมดทุกไซส์ -> การ์ดสินค้าจะถูกทำให้เป็นสีทึบและกดเข้าไม่ได้ แต่ยังคงแสดงชื่อสินค้าไว้ในรายการเหมือนเดิม
+function isProductFullyOutOfStock(product) {
+  if (!product.sizes || product.sizes.length === 0) return false;
+  return product.sizes.every(function (s) {
+    const p = findProduct(product.name, s);
+    return p ? p.isOutOfStock : true;
+  });
+}
+
+function openProductModal(product) {
+  const sizeOptions = product.sizes.map(s => {
+    const p = findProduct(product.name, s);
+    const isOut = p ? p.isOutOfStock : false;
+    return `<option value="${s}" ${isOut ? 'disabled' : ''}>${s}${isOut ? ' (สินค้าหมด)' : ''}</option>`;
+  }).join('');
+
+  Swal.fire({
+    title: `<span class="text-lg font-medium">${product.name}</span>`,
+    html: `
+      <div class="text-left mt-3">
+        ${product.image ? `<div class="w-full flex justify-center mb-4"><img src="${product.image}" alt="${product.name}" class="max-h-40 rounded-xl border border-white/10 object-contain"></div>` : ''}
+        <label class="block text-sm text-white/60 mb-2">เลือกขนาด (Size)</label>
+        <select id="swal-size" class="w-full bg-bg border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-accent mb-4">${sizeOptions}</select>
+        <label class="block text-sm text-white/60 mb-2">จำนวน</label>
+        <div class="flex items-center bg-bg border border-white/10 rounded-xl overflow-hidden mb-1">
+          <button id="swal-btn-dec" class="px-4 py-3 text-white/70 hover:bg-white/10 w-12 flex items-center justify-center text-lg">-</button>
+          <input id="swal-qty" type="number" min="1" value="1" class="w-full bg-transparent text-center text-white outline-none no-spinner font-medium">
+          <button id="swal-btn-inc" class="px-4 py-3 text-white/70 hover:bg-white/10 w-12 flex items-center justify-center text-lg">+</button>
+        </div>
+        <p id="swal-stock-text" class="text-[11px] text-white/40 mb-4 h-4"></p>
+        <div class="flex items-center justify-between border-t border-white/10 pt-4 mt-1">
+          <span class="text-white/60 text-sm">รวมสุทธิ:</span>
+          <span id="swal-price-total" class="text-accent font-semibold text-lg">-</span>
+        </div>
+      </div>
+    `,
+    background: '#1e1a18', color: '#fff', showCancelButton: true, confirmButtonText: 'เพิ่มลงตะกร้า', cancelButtonText: 'ยกเลิก',
+    confirmButtonColor: '#f5860f', cancelButtonColor: 'rgba(255,255,255,0.1)',
+    didOpen: () => {
+      const select = document.getElementById('swal-size');
+      const inputQty = document.getElementById('swal-qty');
+      const btnDec = document.getElementById('swal-btn-dec');
+      const btnInc = document.getElementById('swal-btn-inc');
+      const textTotal = document.getElementById('swal-price-total');
+      const textStock = document.getElementById('swal-stock-text');
+
+      function updateUI() {
+        const size = select.value;
+        const p = findProduct(product.name, size);
+        
+        let qty = parseInt(inputQty.value) || 1;
+        if (qty < 1) qty = 1;
+        inputQty.value = qty;
+        
+        if (!p) {
+          textTotal.textContent = 'ไม่พบราคา';
+          textStock.innerHTML = '<span class="text-red-400 font-medium">ไม่พบราคาสินค้านี้</span>';
+          Swal.getConfirmButton().disabled = true;
+          return;
+        }
+
+        textTotal.textContent = fmtMoney(p.price * qty);
+
+        if (p.isOutOfStock) {
+          textStock.innerHTML = '<span class="text-red-400 font-medium">สินค้าหมด (ไม่สามารถสั่งซื้อได้)</span>';
+          Swal.getConfirmButton().disabled = true;
+        } else {
+          textStock.innerHTML = '<span class="text-emerald-400 font-medium">พร้อมจำหน่าย</span>';
+          Swal.getConfirmButton().disabled = false;
+        }
+      }
+      select.addEventListener('change', updateUI);
+      btnDec.addEventListener('click', () => { inputQty.value = (parseInt(inputQty.value)||1) - 1; updateUI(); });
+      btnInc.addEventListener('click', () => { inputQty.value = (parseInt(inputQty.value)||1) + 1; updateUI(); });
+      inputQty.addEventListener('input', updateUI);
+      updateUI();
+    },
+    preConfirm: () => {
+      return { size: document.getElementById('swal-size').value, qty: parseInt(document.getElementById('swal-qty').value) };
+    }
+  }).then((res) => {
+    if (res.isConfirmed && res.value) {
+      const p = findProduct(product.name, res.value.size);
+      if (p && !p.isOutOfStock) {
+        const existing = cart.find(c => c.item === product.name && c.size === res.value.size);
+        if (existing) existing.qty += res.value.qty; else cart.push({ item: product.name, size: res.value.size, qty: res.value.qty, price: p.price });
+        updateCart();
+        Swal.fire({ toast: true, position: 'top', icon: 'success', title: 'เพิ่มลงตะกร้าแล้ว', showConfirmButton: false, timer: 1000, background: '#1e1a18', color: '#fff' });
+      }
+    }
+  });
+}
+
+document.getElementById('cartToggle').addEventListener('click', function () { document.getElementById('cartItems').classList.toggle('hidden'); });
+
+function updateCart() {
+  const bar = document.getElementById('cartBar');
+  if (cart.length === 0) { bar.classList.add('hidden'); return; }
+  bar.classList.remove('hidden');
+
+  let totalQty = 0; let totalPrice = 0;
+  const itemsWrap = document.getElementById('cartItems'); itemsWrap.innerHTML = '';
+  
+  cart.forEach((c, index) => {
+    totalQty += c.qty; totalPrice += c.price * c.qty;
+    itemsWrap.innerHTML += `
+      <div class="flex items-center justify-between bg-bg rounded-xl p-3 border border-white/5">
+        <div><p class="text-sm">${c.item}</p><p class="text-xs text-white/50">Size: ${c.size} | ${fmtMoney(c.price)}/ชิ้น</p></div>
+        <div class="flex items-center gap-3">
+          <span class="text-sm">x${c.qty}</span>
+          <button onclick="removeFromCart(${index})" class="w-7 h-7 rounded-full bg-red-500/20 text-red-400 flex items-center justify-center hover:bg-red-500/40 transition"><svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
+        </div>
+      </div>`;
+  });
+  document.getElementById('cartCount').textContent = totalQty;
+  document.getElementById('cartTotal').textContent = fmtMoney(totalPrice);
+  const vb = vatBreakdown(totalPrice);
+  document.getElementById('cartVatNote').textContent = 'ราคาก่อน VAT ' + fmtMoney(vb.exVat) + ' + VAT 7% ' + fmtMoney(vb.vat);
+}
+
+function removeFromCart(index) { cart.splice(index, 1); updateCart(); }
+
+document.getElementById('btnSubmitOrder').addEventListener('click', function () {
+  if (cart.length === 0) return;
+
+  let grandTotal = 0;
+  const cartListHtml = cart.map((item, idx) => {
+    const lineTotal = item.price * item.qty;
+    grandTotal += lineTotal;
+    return `
+      <div class="flex justify-between items-start text-xs border-b border-white/10 pb-2 last:border-0 last:pb-0">
+        <div>
+          <p class="font-medium text-white">${idx + 1}. ${item.item}</p>
+          <p class="text-white/50">ไซส์: ${item.size} | ราคาต่อชิ้น: ${fmtMoney(item.price)}</p>
+        </div>
+        <div class="text-right shrink-0 ml-3">
+          <p class="font-medium text-white">x${item.qty}</p>
+          <p class="text-accent font-semibold">${fmtMoney(lineTotal)}</p>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  const vb = vatBreakdown(grandTotal);
+
+  const confirmModalHtml = `
+    <div class="text-left text-sm space-y-3 mt-2">
+      <div class="bg-panel2 p-3 rounded-xl border border-white/10 space-y-1">
+        <p class="text-xs text-white/70"><span class="text-white/40">ผู้สั่งซื้อ:</span> ${currentEmployee ? currentEmployee.name : '-'} (${currentEmployee ? currentEmployee.code : '-'})</p>
+        <p class="text-xs text-white/70"><span class="text-white/40">สถานที่รับสินค้า:</span> ${selectedPickupLocation || '-'}</p>
+        <p class="text-xs text-white/70"><span class="text-white/40">เบอร์ติดต่อ:</span> ${selectedPhone || '-'}</p>
+      </div>
+
+      <div>
+        <p class="text-xs text-white/50 mb-1.5 font-medium">รายการสินค้าที่สั่งซื้อ:</p>
+        <div class="bg-panel2 p-3 rounded-xl border border-white/10 space-y-2.5 max-h-52 overflow-y-auto pr-1">
+          ${cartListHtml}
+        </div>
+      </div>
+
+      <div class="flex justify-between items-center pt-2 border-t border-white/10">
+        <span class="text-white/50">ราคาก่อน VAT:</span>
+        <span class="text-white/70">${fmtMoney(vb.exVat)}</span>
+      </div>
+      <div class="flex justify-between items-center">
+        <span class="text-white/50">VAT 7%:</span>
+        <span class="text-white/70">${fmtMoney(vb.vat)}</span>
+      </div>
+      <div class="flex justify-between items-center pt-2 border-t border-white/10">
+        <span class="text-white font-medium">ราคารวมทั้งหมด (รวม VAT):</span>
+        <span class="text-accent text-xl font-bold">${fmtMoney(grandTotal)}</span>
+      </div>
+    </div>
+  `;
+
+  Swal.fire({
+    title: '<span class="text-xl font-semibold">ยืนยันการสั่งซื้อ</span>',
+    html: confirmModalHtml,
+    icon: 'question',
+    background: '#1e1a18',
+    color: '#fff',
+    showCancelButton: true,
+    confirmButtonText: 'ยืนยันสั่งซื้อ',
+    cancelButtonText: 'กลับไปแก้ไข',
+    confirmButtonColor: '#f5860f',
+    cancelButtonColor: 'rgba(255,255,255,0.1)'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      Swal.fire({ title: 'กำลังบันทึกคำสั่งซื้อ...', background: '#1e1a18', color: '#fff', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+      
+      const payload = { code: currentEmployee.code, pickupLocation: selectedPickupLocation, phone: selectedPhone, items: cart };
+      
+      google.script.run.withSuccessHandler(function (res) {
+        if (!res.success) { Swal.fire({ icon: 'error', title: 'สั่งซื้อไม่สำเร็จ', text: res.message, background: '#1e1a18', color: '#fff', confirmButtonColor: '#f5860f' }); return; }
+        
+        Swal.fire({ icon: 'success', title: 'สำเร็จ!', text: res.message, background: '#1e1a18', color: '#fff', confirmButtonColor: '#f5860f' }).then(() => {
+          document.getElementById('catalogSection').classList.add('hidden'); document.getElementById('modeSelect').classList.remove('hidden');
+          clearSession();
+          loadPrices();
+        });
+      }).withFailureHandler(function (err) {
+        Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: err.message, background: '#1e1a18', color: '#fff' });
+      }).submitOrder(payload);
+    }
+  });
+});
+
+let dashMode = 'employees'; // 'employees' | 'search'
+let dashActiveTab = 'employees'; // 'employees' | 'items'
+let dashSearchDebounce = null;
+
+document.getElementById('btnDashboard').addEventListener('click', function () {
+  if (!dashboardPassword) {
+    Swal.fire({
+      title: 'เข้าสู่ระบบ', input: 'password', inputPlaceholder: 'กรอกรหัสผ่าน...', background: '#1e1a18', color: '#fff', confirmButtonColor: '#f5860f', showCancelButton: true
+    }).then((res) => {
+      if (res.isConfirmed && res.value) {
+        const enteredPassword = res.value;
+        Swal.fire({ title: 'กำลังตรวจสอบ...', background: '#1e1a18', color: '#fff', didOpen: () => Swal.showLoading() });
+        google.script.run.withSuccessHandler(function (authRes) {
+          if (!authRes.success) {
+            Swal.fire({ icon: 'error', title: 'เข้าถึงไม่ได้', text: authRes.message, background: '#1e1a18', color: '#fff' });
+            return;
+          }
+          Swal.close();
+          dashboardPassword = enteredPassword;
+          dashboardAuthLevel = authRes.level; // 'full' | 'dashboard'
+          applyAuthLevelUI();
+          const today = new Date().toLocaleDateString('en-CA');
+          document.getElementById('dashDateFrom').value = today;
+          document.getElementById('dashDateTo').value = today;
+          dashMode = 'employees'; dashActiveTab = 'employees';
+          openDashLanding();
+        }).withFailureHandler(function (err) {
+          Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: err.message, background: '#1e1a18', color: '#fff' });
+        }).checkDashboardAuth(enteredPassword);
+      }
+    });
+  } else {
+    // เข้าสู่ระบบไว้แล้ว -> เด้งหน้าตัวเลือกให้เลือกว่าจะทำรายการอะไรก่อนทุกครั้ง
+    // (แถบเมนูด้านข้างยังอยู่เหมือนเดิม ใช้สลับไปทำรายการอื่นได้ตามปกติหลังเลือกแล้ว)
+    openDashLanding();
+  }
+});
+
+// ============ หน้าตัวเลือก (Landing) หลังล็อกอิน Admin Store ============
+// เด้งขึ้นมาให้เลือกว่าจะเข้าทำรายการอะไรก่อน โดยไม่ลบแถบเมนูด้านข้าง (sidebar) ออก
+// เพื่อให้ยังสลับไปทำรายการอื่นได้ตามปกติหลังจากเลือกครั้งแรกแล้ว
+function openDashLanding() {
+  document.getElementById('dashModal').classList.add('hidden');
+  applyAuthLevelUI();
+  document.getElementById('dashLandingModal').classList.remove('hidden');
+}
+function closeDashLanding() {
+  document.getElementById('dashLandingModal').classList.add('hidden');
+}
+function openDashFromLanding(tab) {
+  closeDashLanding();
+  document.getElementById('dashModal').classList.remove('hidden');
+  switchDashTab(tab);
+}
+document.getElementById('landingDashOrders').addEventListener('click', function () { openDashFromLanding('employees'); });
+document.getElementById('landingDashUniformToday').addEventListener('click', function () { openDashFromLanding('uniformToday'); });
+document.getElementById('landingUniform').addEventListener('click', function () { openDashFromLanding('uniform'); });
+document.getElementById('landingDashSpecialToday').addEventListener('click', function () { openDashFromLanding('specialToday'); });
+document.getElementById('landingSpecial').addEventListener('click', function () { openDashFromLanding('special'); });
+document.getElementById('landingItemSummary').addEventListener('click', function () {
+  if (dashboardAuthLevel !== 'full') return; // สิทธิ์จำกัด: เมนูนี้ใช้ไม่ได้
+  openDashFromLanding('items');
+});
+document.getElementById('landingStock').addEventListener('click', function () {
+  if (dashboardAuthLevel !== 'full') return; // สิทธิ์จำกัด: เมนูนี้ใช้ไม่ได้
+  openDashFromLanding('stock');
+});
+document.getElementById('landingCancel').addEventListener('click', function () {
+  closeDashLanding();
+});
+
+// เปิด/ปิดปุ่มเมนู "สรุปยอดขายสินค้า" และ "Update Stock" ตามระดับสิทธิ์
+// สิทธิ์จำกัด (dashboard) จะกดปุ่มเมนูเหล่านี้ไม่ได้เลย ใช้ได้เฉพาะเมนู "แดชบอร์ด" เท่านั้น
+function applyAuthLevelUI() {
+  const restricted = dashboardAuthLevel !== 'full';
+  ['navItemSummary', 'navStock', 'landingItemSummary', 'landingStock'].forEach(function (id) {
+    const btn = document.getElementById(id);
+    btn.disabled = restricted;
+    btn.classList.toggle('opacity-40', restricted);
+    btn.classList.toggle('cursor-not-allowed', restricted);
+    btn.classList.toggle('pointer-events-none', restricted);
+    btn.title = restricted ? 'รหัสผ่านนี้ใช้ได้เฉพาะเมนูแดชบอร์ดเท่านั้น' : '';
+  });
+}
+
+// "Log out" (sidebar, left side) - closes the console AND clears the saved session password
+document.getElementById('btnLogoutDash').addEventListener('click', function () {
+  dashboardPassword = null;
+  dashboardAuthLevel = null;
+  dashMode = 'employees'; dashActiveTab = 'employees'; uniformTodayMode = 'date'; specialTodayMode = 'date';
+  document.getElementById('dashSearch').value = '';
+  document.getElementById('uniformTodaySearch').value = '';
+  document.getElementById('uniformTodaySearchClear').classList.add('hidden');
+  document.getElementById('specialTodaySearch').value = '';
+  document.getElementById('specialTodaySearchClear').classList.add('hidden');
+  document.getElementById('dashModal').classList.add('hidden');
+  document.getElementById('dashLandingModal').classList.add('hidden');
+  applyAuthLevelUI();
+  closeSidebarDrawer();
+});
+
+// mobile sidebar drawer
+document.getElementById('btnOpenSidebar').addEventListener('click', openSidebarDrawer);
+document.getElementById('dashSidebarBackdrop').addEventListener('click', closeSidebarDrawer);
+function openSidebarDrawer() {
+  document.getElementById('dashSidebar').classList.remove('-translate-x-full');
+  document.getElementById('dashSidebarBackdrop').classList.remove('hidden');
+}
+function closeSidebarDrawer() {
+  document.getElementById('dashSidebar').classList.add('-translate-x-full');
+  document.getElementById('dashSidebarBackdrop').classList.add('hidden');
+}
+
+document.getElementById('dashDateFrom').addEventListener('change', function () { refreshActiveTab(); });
+document.getElementById('dashDateTo').addEventListener('change', function () { refreshActiveTab(); });
+
+// "แดชบอร์ด" (เมนูหลัก) กดแล้วแค่ขยาย/ยุบเมนูย่อย ไม่สลับหน้าเอง
+document.getElementById('navDashboard').addEventListener('click', function () { toggleDashboardSubmenu(); });
+document.getElementById('navDashOrders').addEventListener('click', function () { switchDashTab('employees'); });
+document.getElementById('navDashUniformToday').addEventListener('click', function () { switchDashTab('uniformToday'); });
+document.getElementById('navDashSpecialToday').addEventListener('click', function () { switchDashTab('specialToday'); });
+document.getElementById('navUniform').addEventListener('click', function () { switchDashTab('uniform'); });
+document.getElementById('navSpecial').addEventListener('click', function () { switchDashTab('special'); });
+document.getElementById('itemSummaryFactory').addEventListener('change', function () { if (dashActiveTab === 'items') loadItemSummary(); });
+document.getElementById('navItemSummary').addEventListener('click', function () {
+  if (dashboardAuthLevel !== 'full') return; // สิทธิ์จำกัด: เมนูนี้ใช้ไม่ได้
+  switchDashTab('items');
+});
+document.getElementById('navStock').addEventListener('click', function () {
+  if (dashboardAuthLevel !== 'full') return; // สิทธิ์จำกัด: เมนูนี้ใช้ไม่ได้
+  switchDashTab('stock');
+});
+
+// เปิด/ปิดเมนูย่อยของ "แดชบอร์ด" (คำสั่งซื้อวันนี้ / เบิกชุดบรรจุวันนี้)
+let dashboardSubmenuOpen = true;
+function toggleDashboardSubmenu(forceOpen) {
+  dashboardSubmenuOpen = (forceOpen === true) ? true : (forceOpen === false ? false : !dashboardSubmenuOpen);
+  document.getElementById('navDashboardSubmenu').classList.toggle('hidden', !dashboardSubmenuOpen);
+  document.getElementById('navDashboardChevron').classList.toggle('rotate-180', !dashboardSubmenuOpen);
+}
+
+function switchDashTab(tab) {
+  // สิทธิ์จำกัด (dashboard-only) ห้ามเข้าเมนู "สรุปยอดขายสินค้า" / "Update Stock" เด็ดขาด
+  if ((tab === 'items' || tab === 'stock') && dashboardAuthLevel !== 'full') {
+    tab = 'employees';
+  }
+  dashActiveTab = tab;
+  closeSidebarDrawer();
+  const navDash = document.getElementById('navDashboard');
+  const navDashOrders = document.getElementById('navDashOrders');
+  const navDashUniformToday = document.getElementById('navDashUniformToday');
+  const navDashSpecialToday = document.getElementById('navDashSpecialToday');
+  const navUniform = document.getElementById('navUniform');
+  const navSpecial = document.getElementById('navSpecial');
+  const navItems = document.getElementById('navItemSummary');
+  const navStock = document.getElementById('navStock');
+  const overviewEl = document.getElementById('dashOverviewWrap');
+  const gridEl = document.getElementById('dashGrid');
+  const gridLabelEl = document.getElementById('dashGridLabel');
+  const uniformEl = document.getElementById('uniformWrap');
+  const uniformTodayEl = document.getElementById('uniformTodayWrap');
+  const specialEl = document.getElementById('specialWrap');
+  const specialTodayEl = document.getElementById('specialTodayWrap');
+  const itemsEl = document.getElementById('itemSummaryWrap');
+  const stockEl = document.getElementById('stockWrap');
+  const searchWrap = document.getElementById('dashSearchWrap');
+  const pageTitle = document.getElementById('dashPageTitle');
+  const dateRangeWrap = document.getElementById('dashDateRangeWrap');
+  const statsGrid = document.getElementById('dashStatsGrid');
+
+  navDash.classList.remove('active'); navDashOrders.classList.remove('active'); navDashUniformToday.classList.remove('active'); navDashSpecialToday.classList.remove('active');
+  navUniform.classList.remove('active'); navSpecial.classList.remove('active'); navItems.classList.remove('active'); navStock.classList.remove('active');
+  overviewEl.classList.add('hidden'); gridEl.classList.add('hidden'); gridLabelEl.classList.add('hidden');
+  uniformEl.classList.add('hidden'); uniformTodayEl.classList.add('hidden'); specialEl.classList.add('hidden'); specialTodayEl.classList.add('hidden');
+  itemsEl.classList.add('hidden'); stockEl.classList.add('hidden'); searchWrap.classList.add('hidden');
+  dateRangeWrap.classList.remove('hidden'); statsGrid.classList.remove('hidden');
+
+  if (tab === 'employees') {
+    navDash.classList.add('active'); navDashOrders.classList.add('active');
+    toggleDashboardSubmenu(true);
+    overviewEl.classList.remove('hidden'); gridEl.classList.remove('hidden'); gridLabelEl.classList.remove('hidden');
+    searchWrap.classList.remove('hidden');
+    pageTitle.textContent = 'คำสั่งซื้อวันนี้';
+    const q = document.getElementById('dashSearch').value.trim();
+    if (q) { dashMode = 'search'; runSearch(q); } else { dashMode = 'employees'; loadDashboard(); }
+  } else if (tab === 'uniformToday') {
+    navDash.classList.add('active'); navDashUniformToday.classList.add('active');
+    toggleDashboardSubmenu(true);
+    uniformTodayEl.classList.remove('hidden');
+    statsGrid.classList.add('hidden');
+    pageTitle.textContent = 'รายการเบิกชุดบรรจุ (เลือกช่วงวันที่ หรือ ค้นหารหัสพนักงาน)';
+    const uq = document.getElementById('uniformTodaySearch').value.trim();
+    if (uq) { searchUniformTodayByCode(uq); } else { loadUniformToday(); }
+  } else if (tab === 'uniform') {
+    navUniform.classList.add('active');
+    uniformEl.classList.remove('hidden');
+    dateRangeWrap.classList.add('hidden'); statsGrid.classList.add('hidden');
+    pageTitle.textContent = 'เบิกชุดบรรจุ';
+    loadUniformCatalogIfNeeded();
+  } else if (tab === 'specialToday') {
+    navDash.classList.add('active'); navDashSpecialToday.classList.add('active');
+    toggleDashboardSubmenu(true);
+    specialTodayEl.classList.remove('hidden');
+    statsGrid.classList.add('hidden');
+    pageTitle.textContent = 'รายการเบิกพิเศษ (เลือกช่วงวันที่ หรือ ค้นหารหัสพนักงาน)';
+    const sq = document.getElementById('specialTodaySearch').value.trim();
+    if (sq) { searchSpecialTodayByCode(sq); } else { loadSpecialToday(); }
+  } else if (tab === 'special') {
+    navSpecial.classList.add('active');
+    specialEl.classList.remove('hidden');
+    dateRangeWrap.classList.add('hidden'); statsGrid.classList.add('hidden');
+    pageTitle.textContent = 'เบิกพิเศษ';
+    loadSpecialCatalogIfNeeded();
+  } else if (tab === 'items') {
+    navItems.classList.add('active');
+    itemsEl.classList.remove('hidden');
+    pageTitle.textContent = 'สรุปยอดขายสินค้า';
+    loadItemSummary();
+  } else if (tab === 'stock') {
+    navStock.classList.add('active');
+    stockEl.classList.remove('hidden');
+    dateRangeWrap.classList.add('hidden'); statsGrid.classList.add('hidden');
+    pageTitle.textContent = 'อัปเดตสถานะสินค้า (Stock)';
+    loadStockList();
+  }
+}
+
+// เมนูย่อยแดชบอร์ด "เบิกชุดบรรจุวันนี้" มี 2 โหมด: 'date' = ดูตามช่วงวันที่, 'search' = ค้นหาด้วยรหัสพนักงาน (ค้นได้ทุกวัน)
+let uniformTodayMode = 'date';
+
+// โหลดรายการเบิกชุดบรรจุตามช่วงวันที่ที่เลือก (ค่าเริ่มต้น = วันนี้) มาแสดงในเมนูย่อยแดชบอร์ด
+function loadUniformToday() {
+  uniformTodayMode = 'date';
+  const listEl = document.getElementById('uniformTodayList');
+  listEl.innerHTML = '<p class="text-white/40 text-xs text-center py-6">กำลังโหลด...</p>';
+  const fromStr = document.getElementById('dashDateFrom').value;
+  const toStr = document.getElementById('dashDateTo').value;
+  google.script.run.withSuccessHandler(function (res) {
+    if (!res.success) { listEl.innerHTML = '<p class="text-red-500 text-xs text-center py-6">' + res.message + '</p>'; return; }
+    const rangeLabel = res.startDate === res.endDate ? toThaiDateLabel(res.startDate) : (toThaiDateLabel(res.startDate) + ' ถึง ' + toThaiDateLabel(res.endDate));
+    document.getElementById('dashDate').textContent = 'ข้อมูลช่วงวันที่: ' + rangeLabel;
+    renderUniformClaimsList(res);
+  }).withFailureHandler(function (err) {
+    listEl.innerHTML = '<p class="text-red-500 text-xs text-center py-6">' + err.message + '</p>';
+  }).getTodayUniformClaims(dashboardPassword, fromStr, toStr);
+}
+
+// ค้นหารายการเบิกชุดบรรจุด้วยรหัสพนักงาน (หรือชื่อ/สังกัด) - ค้นหาได้ทุกวัน ไม่จำกัดเฉพาะช่วงวันที่ที่เลือกอยู่
+function searchUniformTodayByCode(query) {
+  uniformTodayMode = 'search';
+  const listEl = document.getElementById('uniformTodayList');
+  listEl.innerHTML = '<p class="text-white/40 text-xs text-center py-6">กำลังค้นหา...</p>';
+  document.getElementById('dashDate').textContent = 'ผลการค้นหา: "' + query + '" (ค้นหาได้ทุกวันที่)';
+  google.script.run.withSuccessHandler(function (res) {
+    if (!res.success) { listEl.innerHTML = '<p class="text-red-500 text-xs text-center py-6">' + res.message + '</p>'; return; }
+    renderUniformClaimsList(res);
+  }).withFailureHandler(function (err) {
+    listEl.innerHTML = '<p class="text-red-500 text-xs text-center py-6">' + err.message + '</p>';
+  }).searchUniformClaims(dashboardPassword, query);
+}
+
+// วาดรายการการ์ดเบิกชุดบรรจุ (ใช้ร่วมกันทั้งโหมดดูตามช่วงวันที่ และโหมดค้นหาด้วยรหัสพนักงาน)
+function renderUniformClaimsList(res) {
+  const listEl = document.getElementById('uniformTodayList');
+  document.getElementById('uniformTodayStatEmployees').textContent = res.totalEmployees;
+  document.getElementById('uniformTodayStatItems').textContent = res.totalItems;
+  const records = res.records || [];
+  if (records.length === 0) {
+    const emptyMsg = uniformTodayMode === 'search' ? 'ไม่พบรายการเบิกชุดบรรจุของรหัสพนักงานนี้' : 'ไม่มีการเบิกชุดบรรจุในช่วงวันที่นี้';
+    listEl.innerHTML = '<p class="text-white/50 col-span-full text-center py-10">' + emptyMsg + '</p>';
+    return;
+  }
+  const uniformStatusOptsHtml = (res.statusOptions || []).map(opt => '<option value="' + opt + '">' + opt + '</option>').join('');
+  const uniformCancelledStatus = res.cancelledStatus;
+
+  listEl.innerHTML = records.map(function (r) {
+      const isCancelled = r.status === uniformCancelledStatus;
+      const statusHtml = r.status
+        ? '<span class="text-[10px] px-2 py-0.5 rounded-full ' + (isCancelled ? 'bg-red-500/15 text-red-400' : 'bg-[#f5860f]/15 text-[#f5860f]') + ' shrink-0">' + r.status + '</span>'
+        : '<span class="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-white/40 shrink-0">รอดำเนินการ</span>';
+      const printBtnHtml = r.canPrintPass
+        ? '<button data-code="' + r.code + '" data-updated-at="' + r.updatedAt + '" class="uniform-pass-print-btn w-full mb-2 bg-[#f5860f]/10 hover:bg-[#f5860f]/20 border border-[#f5860f]/40 text-[#f5860f] text-xs py-1.5 rounded-xl transition"> พิมพ์ใบผ่าน</button>'
+        : '';
+      const itemsHtml = r.items.split(', ').map(function (it) {
+        return '<div class="flex justify-between text-xs text-white/50 py-1 border-b border-white/10 last:border-0"><span>- ' + it + '</span></div>';
+      }).join('');
+
+      const claimIdHtml = r.claimId ? ('เลขที่คำสั่งเบิก ' + r.claimId + ' | ') : '';
+
+      const statusUpdateHtml = r.claimId ? (
+        '<div class="flex flex-col gap-2 p-2 bg-[#241f1c] rounded-lg border border-white/10">' +
+          '<div class="flex items-center gap-2">' +
+            '<span class="text-xs text-white/50 w-12 shrink-0">สถานะ:</span>' +
+            '<select data-claim-id="' + r.claimId + '" class="uniform-status-select flex-1 bg-[#241f1c] border border-white/10 rounded-xl px-2 py-1.5 text-xs outline-none focus:border-[#f5860f]">' +
+              uniformStatusOptsHtml.replace('value="' + r.status + '"', 'value="' + r.status + '" selected') +
+            '</select>' +
+          '</div>' +
+          '<div class="flex items-center gap-2">' +
+            '<span class="text-xs text-white/50 w-12 shrink-0">หมายเหตุ:</span>' +
+            '<input type="text" data-claim-id="' + r.claimId + '" class="uniform-note-input flex-1 bg-[#241f1c] border border-white/10 rounded-xl px-2 py-1.5 text-xs outline-none focus:border-[#f5860f]" placeholder="ระบุเหตุผล (จำเป็นเมื่อยกเลิก)..." value="' + (r.note || '') + '">' +
+          '</div>' +
+          '<button data-claim-id="' + r.claimId + '" class="uniform-status-save-btn w-full mt-1 bg-[#1a1614] hover:bg-white/10 border border-white/10 text-white/70 text-xs py-1.5 rounded-xl transition">บันทึกอัปเดต</button>' +
+        '</div>'
+      ) : '';
+
+      return '' +
+        '<div class="dash-card bg-[#241f1c] border border-white/10 rounded-2xl p-4">' +
+          '<div class="flex items-center justify-between mb-1">' +
+            '<p class="font-medium text-lg">' + r.name + '</p>' +
+            statusHtml +
+          '</div>' +
+          '<p class="text-white/50 text-sm">' + r.dept + ' | รหัส: ' + r.code + '</p>' +
+          '<div class="mt-3 p-3 bg-[#1a1614] rounded-xl border border-white/10 order-block">' +
+            '<div class="flex justify-between items-start mb-2">' +
+              '<div><p class="text-sm font-medium text-white">รายการที่เบิก</p><p class="text-xs text-white/50">' + claimIdHtml + 'เวลา ' + r.updatedAt + '</p></div>' +
+            '</div>' +
+            '<div class="mb-3">' + itemsHtml + '</div>' +
+            printBtnHtml +
+            statusUpdateHtml +
+          '</div>' +
+        '</div>';
+    }).join('');
+
+    listEl.querySelectorAll('.uniform-pass-print-btn').forEach(btn => {
+      btn.addEventListener('click', function () {
+        const code = btn.dataset.code;
+        const updatedAt = btn.dataset.updatedAt;
+        const oldText = btn.textContent; btn.textContent = 'กำลังโหลด...'; btn.disabled = true;
+        google.script.run.withSuccessHandler(function (res) {
+          btn.textContent = oldText; btn.disabled = false;
+          if (!res.success) {
+            Swal.fire({ icon: 'error', title: 'พิมพ์ใบผ่านไม่สำเร็จ', text: res.message, background: '#1e1a18', color: '#fff' }); return;
+          }
+          openUniformPassPrintWindow(res.pass, 'admin');
+        }).withFailureHandler(function (err) {
+          btn.textContent = oldText; btn.disabled = false;
+          Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: err.message, background: '#1e1a18', color: '#fff' });
+        }).getUniformPassData(dashboardPassword, code, updatedAt);
+      });
+    });
+
+    listEl.querySelectorAll('.uniform-status-save-btn').forEach(btn => {
+      btn.addEventListener('click', function () {
+        const claimId = btn.dataset.claimId;
+        const select = listEl.querySelector('.uniform-status-select[data-claim-id="' + CSS.escape(claimId) + '"]');
+        const noteInput = listEl.querySelector('.uniform-note-input[data-claim-id="' + CSS.escape(claimId) + '"]');
+        if (select.value === uniformCancelledStatus) {
+          if (!noteInput.value.trim()) {
+            Swal.fire({ icon: 'warning', title: 'กรุณาระบุหมายเหตุเหตุผลที่ยกเลิก', background: '#1e1a18', color: '#fff' });
+            return;
+          }
+          Swal.fire({
+            icon: 'warning', title: 'ยืนยันการยกเลิกคำสั่งเบิก?',
+            text: 'คำสั่งเบิกเลขที่ ' + claimId + ' จะถูกทำเครื่องหมายว่ายกเลิก',
+            background: '#1e1a18', color: '#fff', confirmButtonColor: '#f5860f',
+            showCancelButton: true, confirmButtonText: 'ยืนยันยกเลิก', cancelButtonText: 'ไม่ยกเลิก'
+          }).then(result => {
+            if (result.isConfirmed) updateUniformClaimStatusFromDashboard(claimId, select.value, noteInput.value, btn);
+          });
+          return;
+        }
+        updateUniformClaimStatusFromDashboard(claimId, select.value, noteInput.value, btn);
+      });
+    });
+}
+
+function updateUniformClaimStatusFromDashboard(claimId, newStatus, newNote, btnEl) {
+  const oldText = btnEl.textContent;
+  btnEl.textContent = 'กำลังบันทึก...'; btnEl.disabled = true;
+  google.script.run.withSuccessHandler(function (res) {
+    btnEl.textContent = oldText; btnEl.disabled = false;
+    if (res.success) {
+      Swal.fire({ toast: true, position: 'top', icon: 'success', title: 'อัปเดตสถานะแล้ว', showConfirmButton: false, timer: 1500, background: '#1e1a18', color: '#fff' });
+      if (uniformTodayMode === 'search') { searchUniformTodayByCode(document.getElementById('uniformTodaySearch').value.trim()); } else { loadUniformToday(); }
+    } else {
+      Swal.fire({ icon: 'error', title: 'ผิดพลาด', text: res.message, background: '#1e1a18', color: '#fff' });
+    }
+  }).withFailureHandler(function (err) {
+    btnEl.textContent = oldText; btnEl.disabled = false;
+    Swal.fire({ icon: 'error', title: 'ผิดพลาด', text: err.message, background: '#1e1a18', color: '#fff' });
+  }).updateUniformClaimStatus(dashboardPassword, claimId, newStatus, newNote);
+}
+
+function refreshActiveTab() {
+  if (dashActiveTab === 'items') { loadItemSummary(); }
+  else if (dashActiveTab === 'stock') { /* ไม่ผูกกับช่วงวันที่ */ }
+  else if (dashActiveTab === 'uniform') { /* ไม่ผูกกับช่วงวันที่ */ }
+  else if (dashActiveTab === 'special') { /* ไม่ผูกกับช่วงวันที่ */ }
+  else if (dashActiveTab === 'uniformToday') { if (uniformTodayMode === 'search') { searchUniformTodayByCode(document.getElementById('uniformTodaySearch').value.trim()); } else { loadUniformToday(); } }
+  else if (dashActiveTab === 'specialToday') { if (specialTodayMode === 'search') { searchSpecialTodayByCode(document.getElementById('specialTodaySearch').value.trim()); } else { loadSpecialToday(); } }
+  else if (dashMode === 'search') { runSearch(document.getElementById('dashSearch').value); }
+  else { loadDashboard(); }
+}
+
+/* ============ Update Stock (เชื่อมกับชีท "ราคาสินค้า") ============ */
+let stockData = [];
+
+function loadStockList() {
+  document.getElementById('stockBody').innerHTML = '<tr><td colspan="4" class="text-center text-white/50 py-6">กำลังโหลด...</td></tr>';
+  google.script.run.withSuccessHandler(function (res) {
+    if (!res.success) { document.getElementById('stockBody').innerHTML = '<tr><td colspan="4" class="text-center text-red-500 py-6">' + res.message + '</td></tr>'; return; }
+    stockData = res.items || [];
+    renderStockList();
+  }).withFailureHandler(function (err) {
+    document.getElementById('stockBody').innerHTML = '<tr><td colspan="4" class="text-center text-red-500 py-6">' + err.message + '</td></tr>';
+  }).getStockList(dashboardPassword);
+}
+
+function renderStockList() {
+  const q = document.getElementById('stockSearch').value.trim().toLowerCase();
+  const body = document.getElementById('stockBody');
+  const filtered = stockData.filter(function (p) { return !q || p.item.toLowerCase().indexOf(q) !== -1; });
+
+  if (filtered.length === 0) {
+    body.innerHTML = '<tr><td colspan="4" class="text-center text-white/50 py-6">ไม่พบสินค้า</td></tr>';
+    return;
+  }
+
+  body.innerHTML = filtered.map(function (p) {
+    const inStock = !p.isOutOfStock;
+    return `
+      <tr class="border-t border-white/10">
+        <td class="px-4 py-3">${p.item}</td>
+        <td class="px-4 py-3">${p.size || '-'}</td>
+        <td class="px-4 py-3 text-right">${Number(p.price).toFixed(2)}</td>
+        <td class="px-4 py-3 text-center">
+          <button data-row="${p.rowIndex}" data-instock="${inStock ? '1' : '0'}" class="stock-toggle-btn px-3 py-1.5 rounded-full text-xs font-medium border transition ${inStock ? 'bg-green-500/10 text-green-600 border-green-500/30 hover:bg-green-500/20' : 'bg-red-500/10 text-red-500 border-red-500/30 hover:bg-red-500/20'}">
+            ${inStock ? 'มีสินค้า' : 'สินค้าหมด'}
+          </button>
+        </td>
+      </tr>`;
+  }).join('');
+
+  body.querySelectorAll('.stock-toggle-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      const rowIndex = btn.dataset.row;
+      const newInStock = btn.dataset.instock !== '1';
+      const oldText = btn.textContent;
+      btn.disabled = true; btn.textContent = 'กำลังบันทึก...';
+      google.script.run.withSuccessHandler(function (res) {
+        btn.disabled = false;
+        if (!res.success) { Swal.fire({ icon: 'error', title: 'อัปเดตไม่สำเร็จ', text: res.message, background: '#1e1a18', color: '#fff' }); btn.textContent = oldText; return; }
+        const item = stockData.find(function (p) { return String(p.rowIndex) === String(rowIndex); });
+        if (item) item.isOutOfStock = !newInStock;
+        renderStockList();
+      }).withFailureHandler(function (err) {
+        btn.disabled = false; btn.textContent = oldText;
+        Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: err.message, background: '#1e1a18', color: '#fff' });
+      }).updateStockStatus(dashboardPassword, rowIndex, newInStock);
+    });
+  });
+}
+
+document.getElementById('stockSearch').addEventListener('input', function () { renderStockList(); });
+
+/* ============ เบิกชุดบรรจุ (ค้นหารหัสพนักงาน -> เลือกเสื้อ/กางเกง -> บันทึก) ============ */
+let uniformCatalog = [];
+let uniformCurrentEmp = null;
+
+function loadUniformCatalogIfNeeded(cb) {
+  if (uniformCatalog.length > 0) { if (cb) cb(); return; }
+  google.script.run.withSuccessHandler(function (res) {
+    if (res && res.success) uniformCatalog = res.items || [];
+    if (cb) cb();
+  }).withFailureHandler(function () { if (cb) cb(); }).getUniformCatalogData(dashboardPassword);
+}
+
+document.getElementById('btnUniformSearch').addEventListener('click', function () { searchUniformEmployee(); });
+document.getElementById('uniformEmpCode').addEventListener('keydown', function (e) { if (e.key === 'Enter') searchUniformEmployee(); });
+
+function searchUniformEmployee() {
+  const code = document.getElementById('uniformEmpCode').value.trim();
+  if (!code) return;
+  document.getElementById('uniformEmpInfo').classList.add('hidden');
+  document.getElementById('uniformFormWrap').classList.add('hidden');
+  google.script.run.withSuccessHandler(function (emp) {
+    if (!emp.found) { Swal.fire({ icon: 'error', title: 'ไม่พบพนักงาน', text: emp.message, background: '#1e1a18', color: '#fff' }); return; }
+    uniformCurrentEmp = emp;
+    document.getElementById('uniformEmpAvatar').textContent = emp.name ? emp.name.charAt(0) : '?';
+    document.getElementById('uniformEmpName').textContent = emp.name;
+    document.getElementById('uniformEmpDept').textContent = emp.deptLabel || '-';
+    document.getElementById('uniformEmpConfirmDate').textContent = emp.confirmDate ? ('วันบรรจุ: ' + emp.confirmDate) : 'ไม่พบวันบรรจุ';
+    document.getElementById('uniformEmpInfo').classList.remove('hidden');
+    document.getElementById('uniformFormWrap').classList.remove('hidden');
+    resetUniformForm();
+    loadUniformCatalogIfNeeded(function () { updateUniformSizeOptions('shirt'); updateUniformSizeOptions('pants'); populateUniformStrapOptions(); });
+    loadUniformHistory(emp.code);
+  }).withFailureHandler(function (err) {
+    Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: err.message, background: '#1e1a18', color: '#fff' });
+  }).getEmployeeByCode(code);
+}
+
+function resetUniformForm() {
+  document.getElementById('uniformShirtItem').value = '';
+  document.getElementById('uniformPantsItem').value = '';
+  document.getElementById('uniformStrapItem').value = '';
+  populateUniformSizeSelect('uniformShirtSize', []);
+  populateUniformSizeSelect('uniformPantsSize', []);
+  document.getElementById('uniformShirtSize').disabled = true;
+  document.getElementById('uniformPantsSize').disabled = true;
+}
+
+// ตัวเลือก "แถบสี" ดึงมาจากชีท "ราคาสินค้า" คอลัมน์ A โดยตรง (ทุกแถวที่ขึ้นต้นด้วย "แถบสี" -> category 'strap' จาก getUniformCatalog)
+function populateUniformStrapOptions() {
+  const sel = document.getElementById('uniformStrapItem');
+  const seen = {};
+  const rows = uniformCatalog.filter(function (p) { return p.category === 'strap' && !seen[p.item] && (seen[p.item] = true); });
+  sel.innerHTML = '<option value="">ไม่เบิกแถบสี</option>' +
+    rows.map(function (r) {
+      return '<option value="' + r.item + '" ' + (r.isOutOfStock ? 'disabled' : '') + '>' + r.item + (r.isOutOfStock ? ' (หมด)' : '') + '</option>';
+    }).join('');
+}
+
+document.getElementById('uniformShirtItem').addEventListener('change', function () { updateUniformSizeOptions('shirt'); });
+document.getElementById('uniformPantsItem').addEventListener('change', function () { updateUniformSizeOptions('pants'); });
+
+function updateUniformSizeOptions(kind) {
+  const itemSel = document.getElementById(kind === 'shirt' ? 'uniformShirtItem' : 'uniformPantsItem');
+  const sizeSelId = kind === 'shirt' ? 'uniformShirtSize' : 'uniformPantsSize';
+  const itemName = itemSel.value;
+  if (!itemName) { populateUniformSizeSelect(sizeSelId, []); document.getElementById(sizeSelId).disabled = true; return; }
+  const rows = uniformCatalog.filter(function (p) { return p.item === itemName; });
+  document.getElementById(sizeSelId).disabled = false;
+  populateUniformSizeSelect(sizeSelId, rows);
+}
+
+function populateUniformSizeSelect(selectId, rows) {
+  const sel = document.getElementById(selectId);
+  sel.innerHTML = '<option value="" disabled selected>เลือกไซส์...</option>' +
+    rows.map(function (r) {
+      return '<option value="' + r.size + '" ' + (r.isOutOfStock ? 'disabled' : '') + '>' + r.size + (r.isOutOfStock ? ' (หมด)' : '') + '</option>';
+    }).join('');
+}
+
+document.getElementById('btnSubmitUniformClaim').addEventListener('click', function () {
+  if (!uniformCurrentEmp) return;
+  const shirtItem = document.getElementById('uniformShirtItem').value;
+  const shirtSize = document.getElementById('uniformShirtSize').value;
+  const pantsItem = document.getElementById('uniformPantsItem').value;
+  const pantsSize = document.getElementById('uniformPantsSize').value;
+  const strapItem = document.getElementById('uniformStrapItem').value;
+
+  if (!shirtItem && !pantsItem && !strapItem) {
+    Swal.fire({ icon: 'warning', title: 'กรุณาเลือกเสื้อ กางเกง หรือแถบสีอย่างน้อย 1 รายการ', background: '#1e1a18', color: '#fff' });
+    return;
+  }
+  if (shirtItem && !shirtSize) { Swal.fire({ icon: 'warning', title: 'กรุณาเลือกไซส์เสื้อ', background: '#1e1a18', color: '#fff' }); return; }
+  if (pantsItem && !pantsSize) { Swal.fire({ icon: 'warning', title: 'กรุณาเลือกไซส์กางเกง', background: '#1e1a18', color: '#fff' }); return; }
+
+  const btn = this;
+  const oldText = btn.textContent;
+  btn.disabled = true; btn.textContent = 'กำลังบันทึก...';
+
+  google.script.run.withSuccessHandler(function (res) {
+    btn.disabled = false; btn.textContent = oldText;
+    if (!res.success) { Swal.fire({ icon: 'error', title: 'บันทึกไม่สำเร็จ', text: res.message, background: '#1e1a18', color: '#fff' }); return; }
+    Swal.fire({ icon: 'success', title: 'บันทึกสำเร็จ', text: res.items, background: '#1e1a18', color: '#fff', confirmButtonColor: '#f5860f' });
+    resetUniformForm();
+    loadUniformHistory(uniformCurrentEmp.code);
+  }).withFailureHandler(function (err) {
+    btn.disabled = false; btn.textContent = oldText;
+    Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: err.message, background: '#1e1a18', color: '#fff' });
+  }).submitUniformClaim(dashboardPassword, uniformCurrentEmp.code, shirtItem, shirtSize, pantsItem, pantsSize, strapItem);
+});
+
+function loadUniformHistory(code) {
+  const wrap = document.getElementById('uniformHistoryList');
+  wrap.innerHTML = '<p class="text-white/40 text-xs">กำลังโหลด...</p>';
+  google.script.run.withSuccessHandler(function (res) {
+    if (!res.success) { wrap.innerHTML = '<p class="text-red-500 text-xs">' + res.message + '</p>'; return; }
+    const history = res.history || [];
+    if (history.length === 0) { wrap.innerHTML = '<p class="text-white/40 text-xs">ยังไม่มีประวัติการเบิก</p>'; return; }
+    wrap.innerHTML = history.map(function (h) {
+      return '<div class="flex items-center justify-between text-xs bg-[#1a1614] rounded-lg px-3 py-2"><span>' + h.items + '</span><span class="text-white/40 shrink-0 ml-3">' + h.updatedAt + '</span></div>';
+    }).join('');
+  }).withFailureHandler(function (err) {
+    wrap.innerHTML = '<p class="text-red-500 text-xs">' + err.message + '</p>';
+  }).getEmployeeUniformHistory(dashboardPassword, code);
+}
+
+/* ============ เบิกพิเศษวันนี้ (แดชบอร์ด: ดูตามช่วงวันที่ / ค้นหาด้วยรหัสพนักงาน / อัปเดตสถานะ) ============ */
+let specialTodayMode = 'date';
+
+function loadSpecialToday() {
+  specialTodayMode = 'date';
+  const listEl = document.getElementById('specialTodayList');
+  listEl.innerHTML = '<p class="text-white/40 text-xs text-center py-6">กำลังโหลด...</p>';
+  const fromStr = document.getElementById('dashDateFrom').value;
+  const toStr = document.getElementById('dashDateTo').value;
+  google.script.run.withSuccessHandler(function (res) {
+    if (!res.success) { listEl.innerHTML = '<p class="text-red-500 text-xs text-center py-6">' + res.message + '</p>'; return; }
+    const rangeLabel = res.startDate === res.endDate ? toThaiDateLabel(res.startDate) : (toThaiDateLabel(res.startDate) + ' ถึง ' + toThaiDateLabel(res.endDate));
+    document.getElementById('dashDate').textContent = 'ข้อมูลช่วงวันที่: ' + rangeLabel;
+    renderSpecialClaimsList(res);
+  }).withFailureHandler(function (err) {
+    listEl.innerHTML = '<p class="text-red-500 text-xs text-center py-6">' + err.message + '</p>';
+  }).getTodaySpecialClaims(dashboardPassword, fromStr, toStr);
+}
+
+function searchSpecialTodayByCode(query) {
+  specialTodayMode = 'search';
+  const listEl = document.getElementById('specialTodayList');
+  listEl.innerHTML = '<p class="text-white/40 text-xs text-center py-6">กำลังค้นหา...</p>';
+  document.getElementById('dashDate').textContent = 'ผลการค้นหา: "' + query + '" (ค้นหาได้ทุกวันที่)';
+  google.script.run.withSuccessHandler(function (res) {
+    if (!res.success) { listEl.innerHTML = '<p class="text-red-500 text-xs text-center py-6">' + res.message + '</p>'; return; }
+    renderSpecialClaimsList(res);
+  }).withFailureHandler(function (err) {
+    listEl.innerHTML = '<p class="text-red-500 text-xs text-center py-6">' + err.message + '</p>';
+  }).searchSpecialClaims(dashboardPassword, query);
+}
+
+function renderSpecialClaimsList(res) {
+  const listEl = document.getElementById('specialTodayList');
+  document.getElementById('specialTodayStatEmployees').textContent = res.totalEmployees;
+  document.getElementById('specialTodayStatItems').textContent = res.totalItems;
+  const records = res.records || [];
+  if (records.length === 0) {
+    const emptyMsg = specialTodayMode === 'search' ? 'ไม่พบรายการเบิกพิเศษของรหัสพนักงานนี้' : 'ไม่มีการเบิกพิเศษในช่วงวันที่นี้';
+    listEl.innerHTML = '<p class="text-white/50 col-span-full text-center py-10">' + emptyMsg + '</p>';
+    return;
+  }
+  const specialStatusOptsHtml = (res.statusOptions || []).map(opt => '<option value="' + opt + '">' + opt + '</option>').join('');
+  const specialCancelledStatus = res.cancelledStatus;
+
+  listEl.innerHTML = records.map(function (r) {
+      const isCancelled = r.status === specialCancelledStatus;
+      const statusHtml = r.status
+        ? '<span class="text-[10px] px-2 py-0.5 rounded-full ' + (isCancelled ? 'bg-red-500/15 text-red-400' : 'bg-[#f5860f]/15 text-[#f5860f]') + ' shrink-0">' + r.status + '</span>'
+        : '<span class="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-white/40 shrink-0">รอดำเนินการ</span>';
+      const itemsHtml = r.items.split(', ').map(function (it) {
+        return '<div class="flex justify-between text-xs text-white/50 py-1 border-b border-white/10 last:border-0"><span>- ' + it + '</span></div>';
+      }).join('');
+
+      const claimIdHtml = r.claimId ? ('เลขที่คำสั่งเบิก ' + r.claimId + ' | ') : '';
+
+      const statusUpdateHtml = r.claimId ? (
+        '<div class="flex flex-col gap-2 p-2 bg-[#241f1c] rounded-lg border border-white/10">' +
+          '<div class="flex items-center gap-2">' +
+            '<span class="text-xs text-white/50 w-12 shrink-0">สถานะ:</span>' +
+            '<select data-claim-id="' + r.claimId + '" class="special-status-select flex-1 bg-[#241f1c] border border-white/10 rounded-xl px-2 py-1.5 text-xs outline-none focus:border-[#f5860f]">' +
+              specialStatusOptsHtml.replace('value="' + r.status + '"', 'value="' + r.status + '" selected') +
+            '</select>' +
+          '</div>' +
+          '<div class="flex items-center gap-2">' +
+            '<span class="text-xs text-white/50 w-12 shrink-0">หมายเหตุ:</span>' +
+            '<input type="text" data-claim-id="' + r.claimId + '" class="special-note-input flex-1 bg-[#241f1c] border border-white/10 rounded-xl px-2 py-1.5 text-xs outline-none focus:border-[#f5860f]" placeholder="ระบุเหตุผล (จำเป็นเมื่อยกเลิก)..." value="' + (r.note || '') + '">' +
+          '</div>' +
+          '<button data-claim-id="' + r.claimId + '" class="special-status-save-btn w-full mt-1 bg-[#1a1614] hover:bg-white/10 border border-white/10 text-white/70 text-xs py-1.5 rounded-xl transition">บันทึกอัปเดต</button>' +
+        '</div>'
+      ) : '';
+
+      return '' +
+        '<div class="dash-card bg-[#241f1c] border border-white/10 rounded-2xl p-4">' +
+          '<div class="flex items-center justify-between mb-1">' +
+            '<p class="font-medium text-lg">' + r.name + '</p>' +
+            statusHtml +
+          '</div>' +
+          '<p class="text-white/50 text-sm">' + r.dept + ' | รหัส: ' + r.code + '</p>' +
+          '<div class="mt-3 p-3 bg-[#1a1614] rounded-xl border border-white/10 order-block">' +
+            '<div class="flex justify-between items-start mb-2">' +
+              '<div><p class="text-sm font-medium text-white">รายการที่เบิก</p><p class="text-xs text-white/50">' + claimIdHtml + 'เวลา ' + r.updatedAt + '</p></div>' +
+            '</div>' +
+            '<div class="mb-3">' + itemsHtml + '</div>' +
+            statusUpdateHtml +
+          '</div>' +
+        '</div>';
+    }).join('');
+
+    listEl.querySelectorAll('.special-status-save-btn').forEach(btn => {
+      btn.addEventListener('click', function () {
+        const claimId = btn.dataset.claimId;
+        const select = listEl.querySelector('.special-status-select[data-claim-id="' + CSS.escape(claimId) + '"]');
+        const noteInput = listEl.querySelector('.special-note-input[data-claim-id="' + CSS.escape(claimId) + '"]');
+        if (select.value === specialCancelledStatus) {
+          if (!noteInput.value.trim()) {
+            Swal.fire({ icon: 'warning', title: 'กรุณาระบุหมายเหตุเหตุผลที่ยกเลิก', background: '#1e1a18', color: '#fff' });
+            return;
+          }
+          Swal.fire({
+            icon: 'warning', title: 'ยืนยันการยกเลิกคำสั่งเบิก?',
+            text: 'คำสั่งเบิกเลขที่ ' + claimId + ' จะถูกทำเครื่องหมายว่ายกเลิก',
+            background: '#1e1a18', color: '#fff', confirmButtonColor: '#f5860f',
+            showCancelButton: true, confirmButtonText: 'ยืนยันยกเลิก', cancelButtonText: 'ไม่ยกเลิก'
+          }).then(result => {
+            if (result.isConfirmed) updateSpecialClaimStatusFromDashboard(claimId, select.value, noteInput.value, btn);
+          });
+          return;
+        }
+        updateSpecialClaimStatusFromDashboard(claimId, select.value, noteInput.value, btn);
+      });
+    });
+}
+
+function updateSpecialClaimStatusFromDashboard(claimId, newStatus, newNote, btnEl) {
+  const oldText = btnEl.textContent;
+  btnEl.textContent = 'กำลังบันทึก...'; btnEl.disabled = true;
+  google.script.run.withSuccessHandler(function (res) {
+    btnEl.textContent = oldText; btnEl.disabled = false;
+    if (res.success) {
+      Swal.fire({ toast: true, position: 'top', icon: 'success', title: 'อัปเดตสถานะแล้ว', showConfirmButton: false, timer: 1500, background: '#1e1a18', color: '#fff' });
+      if (specialTodayMode === 'search') { searchSpecialTodayByCode(document.getElementById('specialTodaySearch').value.trim()); } else { loadSpecialToday(); }
+    } else {
+      Swal.fire({ icon: 'error', title: 'ผิดพลาด', text: res.message, background: '#1e1a18', color: '#fff' });
+    }
+  }).withFailureHandler(function (err) {
+    btnEl.textContent = oldText; btnEl.disabled = false;
+    Swal.fire({ icon: 'error', title: 'ผิดพลาด', text: err.message, background: '#1e1a18', color: '#fff' });
+  }).updateSpecialClaimStatus(dashboardPassword, claimId, newStatus, newNote);
+}
+
+let specialTodaySearchDebounce;
+document.getElementById('specialTodaySearch').addEventListener('input', function (e) {
+  const q = e.target.value.trim();
+  document.getElementById('specialTodaySearchClear').classList.toggle('hidden', !q);
+  clearTimeout(specialTodaySearchDebounce);
+  specialTodaySearchDebounce = setTimeout(function () {
+    if (q) { searchSpecialTodayByCode(q); } else { loadSpecialToday(); }
+  }, 300);
+});
+
+document.getElementById('specialTodaySearchClear').addEventListener('click', function () {
+  const input = document.getElementById('specialTodaySearch');
+  input.value = '';
+  this.classList.add('hidden');
+  loadSpecialToday();
+  input.focus();
+});
+
+/* ============ เบิกพิเศษ (ค้นหารหัสพนักงาน -> เพิ่มรายการสินค้า/ไซส์/จำนวนได้อิสระ -> บันทึก) ============ */
+let specialCatalog = [];
+let specialCurrentEmp = null;
+let specialCart = []; // [{ item, size, qty }]
+
+function loadSpecialCatalogIfNeeded(cb) {
+  if (specialCatalog.length > 0) { if (cb) cb(); return; }
+  google.script.run.withSuccessHandler(function (res) {
+    if (res && res.success) { specialCatalog = res.items || []; populateSpecialItemOptions(); }
+    if (cb) cb();
+  }).withFailureHandler(function () { if (cb) cb(); }).getSpecialProductCatalogData(dashboardPassword);
+}
+
+// เติม dropdown "เลือกรายการ" ด้วยชื่อสินค้าที่ไม่ซ้ำกัน (ไม่แยกตามไซส์ - ไซส์เลือกในขั้นถัดไป)
+function populateSpecialItemOptions() {
+  const sel = document.getElementById('specialAddItem');
+  const seen = {};
+  const items = specialCatalog.filter(function (p) { return !seen[p.item] && (seen[p.item] = true); });
+  sel.innerHTML = '<option value="" disabled selected>เลือกรายการ...</option>' +
+    items.map(function (p) { return '<option value="' + p.item + '">' + p.item + '</option>'; }).join('');
+}
+
+document.getElementById('specialAddItem').addEventListener('change', function () {
+  const itemName = this.value;
+  const sizeSel = document.getElementById('specialAddSize');
+  const rows = specialCatalog.filter(function (p) { return p.item === itemName && p.size; });
+  if (rows.length === 0) {
+    sizeSel.innerHTML = '<option value="">ไม่มีไซส์</option>';
+    sizeSel.disabled = true;
+  } else {
+    sizeSel.innerHTML = '<option value="" disabled selected>เลือกไซส์...</option>' + rows.map(function (r) { return '<option value="' + r.size + '">' + r.size + '</option>'; }).join('');
+    sizeSel.disabled = false;
+  }
+});
+
+document.getElementById('btnSpecialSearch').addEventListener('click', function () { searchSpecialEmployee(); });
+document.getElementById('specialEmpCode').addEventListener('keydown', function (e) { if (e.key === 'Enter') searchSpecialEmployee(); });
+
+function searchSpecialEmployee() {
+  const code = document.getElementById('specialEmpCode').value.trim();
+  if (!code) return;
+  document.getElementById('specialEmpInfo').classList.add('hidden');
+  document.getElementById('specialFormWrap').classList.add('hidden');
+  google.script.run.withSuccessHandler(function (emp) {
+    if (!emp.found) { Swal.fire({ icon: 'error', title: 'ไม่พบพนักงาน', text: emp.message, background: '#1e1a18', color: '#fff' }); return; }
+    specialCurrentEmp = emp;
+    document.getElementById('specialEmpAvatar').textContent = emp.name ? emp.name.charAt(0) : '?';
+    document.getElementById('specialEmpName').textContent = emp.name;
+    document.getElementById('specialEmpDept').textContent = emp.deptLabel || '-';
+    document.getElementById('specialEmpInfo').classList.remove('hidden');
+    document.getElementById('specialFormWrap').classList.remove('hidden');
+    resetSpecialForm();
+    loadSpecialCatalogIfNeeded();
+    loadSpecialHistory(emp.code);
+  }).withFailureHandler(function (err) {
+    Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: err.message, background: '#1e1a18', color: '#fff' });
+  }).getEmployeeByCode(code);
+}
+
+function resetSpecialForm() {
+  specialCart = [];
+  document.getElementById('specialAddItem').value = '';
+  document.getElementById('specialAddSize').innerHTML = '<option value="">ไม่มีไซส์</option>';
+  document.getElementById('specialAddSize').disabled = true;
+  document.getElementById('specialAddQty').value = 1;
+  renderSpecialCart();
+}
+
+document.getElementById('btnSpecialAddItem').addEventListener('click', function () {
+  const itemSel = document.getElementById('specialAddItem');
+  const sizeSel = document.getElementById('specialAddSize');
+  const qtyInput = document.getElementById('specialAddQty');
+  const item = itemSel.value;
+  const size = sizeSel.disabled ? '' : sizeSel.value;
+  const qty = Math.floor(Number(qtyInput.value));
+
+  if (!item) { Swal.fire({ icon: 'warning', title: 'กรุณาเลือกรายการ', background: '#1e1a18', color: '#fff' }); return; }
+  if (!sizeSel.disabled && !size) { Swal.fire({ icon: 'warning', title: 'กรุณาเลือกไซส์', background: '#1e1a18', color: '#fff' }); return; }
+  if (!qty || qty <= 0) { Swal.fire({ icon: 'warning', title: 'กรุณากรอกจำนวนให้ถูกต้อง', background: '#1e1a18', color: '#fff' }); return; }
+
+  specialCart.push({ item: item, size: size, qty: qty });
+  renderSpecialCart();
+
+  itemSel.value = '';
+  sizeSel.innerHTML = '<option value="">ไม่มีไซส์</option>';
+  sizeSel.disabled = true;
+  qtyInput.value = 1;
+});
+
+function renderSpecialCart() {
+  const listEl = document.getElementById('specialCartList');
+  const emptyEl = document.getElementById('specialCartEmpty');
+  if (specialCart.length === 0) {
+    listEl.innerHTML = '';
+    emptyEl.classList.remove('hidden');
+    return;
+  }
+  emptyEl.classList.add('hidden');
+  listEl.innerHTML = specialCart.map(function (c, i) {
+    const label = c.size ? (c.item + ' (' + c.size + ')') : c.item;
+    return '<div class="flex items-center justify-between bg-[#1a1614] rounded-xl px-3 py-2 text-sm">' +
+      '<span>' + label + ' x' + c.qty + '</span>' +
+      '<button data-idx="' + i + '" class="special-cart-remove-btn text-red-400 hover:text-red-300 text-xs px-2">ลบ</button>' +
+    '</div>';
+  }).join('');
+  listEl.querySelectorAll('.special-cart-remove-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      specialCart.splice(Number(btn.dataset.idx), 1);
+      renderSpecialCart();
+    });
+  });
+}
+
+document.getElementById('btnSubmitSpecialClaim').addEventListener('click', function () {
+  if (!specialCurrentEmp) return;
+  if (specialCart.length === 0) {
+    Swal.fire({ icon: 'warning', title: 'กรุณาเพิ่มรายการที่ต้องการเบิกอย่างน้อย 1 รายการ', background: '#1e1a18', color: '#fff' });
+    return;
+  }
+
+  const btn = this;
+  const oldText = btn.textContent;
+  btn.disabled = true; btn.textContent = 'กำลังบันทึก...';
+
+  google.script.run.withSuccessHandler(function (res) {
+    btn.disabled = false; btn.textContent = oldText;
+    if (!res.success) { Swal.fire({ icon: 'error', title: 'บันทึกไม่สำเร็จ', text: res.message, background: '#1e1a18', color: '#fff' }); return; }
+    Swal.fire({ icon: 'success', title: 'บันทึกสำเร็จ', text: res.items, background: '#1e1a18', color: '#fff', confirmButtonColor: '#f5860f' });
+    resetSpecialForm();
+    loadSpecialHistory(specialCurrentEmp.code);
+  }).withFailureHandler(function (err) {
+    btn.disabled = false; btn.textContent = oldText;
+    Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: err.message, background: '#1e1a18', color: '#fff' });
+  }).submitSpecialClaim(dashboardPassword, specialCurrentEmp.code, JSON.stringify(specialCart));
+});
+
+function loadSpecialHistory(code) {
+  const wrap = document.getElementById('specialHistoryList');
+  wrap.innerHTML = '<p class="text-white/40 text-xs">กำลังโหลด...</p>';
+  google.script.run.withSuccessHandler(function (res) {
+    if (!res.success) { wrap.innerHTML = '<p class="text-red-500 text-xs">' + res.message + '</p>'; return; }
+    const history = res.history || [];
+    if (history.length === 0) { wrap.innerHTML = '<p class="text-white/40 text-xs">ยังไม่มีประวัติการเบิก</p>'; return; }
+    wrap.innerHTML = history.map(function (h) {
+      return '<div class="flex items-center justify-between text-xs bg-[#1a1614] rounded-lg px-3 py-2"><span>' + h.items + '</span><span class="text-white/40 shrink-0 ml-3">' + h.updatedAt + '</span></div>';
+    }).join('');
+  }).withFailureHandler(function (err) {
+    wrap.innerHTML = '<p class="text-red-500 text-xs">' + err.message + '</p>';
+  }).getEmployeeSpecialHistory(dashboardPassword, code);
+}
+
+document.getElementById('dashSearch').addEventListener('input', function (e) {
+  const q = e.target.value.trim();
+  document.getElementById('dashSearchClear').classList.toggle('hidden', !q);
+  clearTimeout(dashSearchDebounce);
+  dashSearchDebounce = setTimeout(function () {
+    if (q) { runSearch(q); } else { dashMode = 'employees'; loadDashboard(); }
+  }, 300);
+});
+
+document.getElementById('dashSearchClear').addEventListener('click', function () {
+  const input = document.getElementById('dashSearch');
+  input.value = '';
+  this.classList.add('hidden');
+  dashMode = 'employees';
+  loadDashboard();
+  input.focus();
+});
+
+let uniformTodaySearchDebounce;
+document.getElementById('uniformTodaySearch').addEventListener('input', function (e) {
+  const q = e.target.value.trim();
+  document.getElementById('uniformTodaySearchClear').classList.toggle('hidden', !q);
+  clearTimeout(uniformTodaySearchDebounce);
+  uniformTodaySearchDebounce = setTimeout(function () {
+    if (q) { searchUniformTodayByCode(q); } else { loadUniformToday(); }
+  }, 300);
+});
+
+document.getElementById('uniformTodaySearchClear').addEventListener('click', function () {
+  const input = document.getElementById('uniformTodaySearch');
+  input.value = '';
+  this.classList.add('hidden');
+  loadUniformToday();
+  input.focus();
+});
+
+function runSearch(query) {
+  dashMode = 'search';
+  document.getElementById('dashOverviewWrap').classList.add('hidden');
+  document.getElementById('dashGrid').innerHTML = '<p class="text-white/50 col-span-full text-center py-10">กำลังค้นหา...</p>';
+  google.script.run.withSuccessHandler(function (res) {
+    if (!res.success) { document.getElementById('dashGrid').innerHTML = '<p class="text-red-500 col-span-full text-center py-10">' + res.message + '</p>'; return; }
+    renderDashboard(res, true);
+  }).withFailureHandler(function (err) {
+    document.getElementById('dashGrid').innerHTML = '<p class="text-red-500 col-span-full text-center py-10">' + err.message + '</p>';
+  }).searchOrders(dashboardPassword, query);
+}
+
+function loadDashboard() {
+  document.getElementById('dashModal').classList.remove('hidden');
+  document.getElementById('dashOverviewWrap').classList.remove('hidden');
+  document.getElementById('dashGrid').innerHTML = '<p class="text-white/50 col-span-full text-center py-10">กำลังโหลดข้อมูล...</p>';
+  const fromStr = document.getElementById('dashDateFrom').value;
+  const toStr = document.getElementById('dashDateTo').value;
+
+  google.script.run.withSuccessHandler(function (res) {
+    if (!res.success) {
+      document.getElementById('dashGrid').innerHTML = ''; dashboardPassword = null; document.getElementById('dashModal').classList.add('hidden');
+      Swal.fire({ icon: 'error', title: 'เข้าถึงไม่ได้', text: res.message, background: '#1e1a18', color: '#fff' }); return;
+    }
+    renderDashboard(res, false);
+  }).withFailureHandler(function (err) {
+    document.getElementById('dashGrid').innerHTML = '<p class="text-red-500 col-span-full text-center py-10">' + err.message + '</p>';
+  }).getDashboardData(dashboardPassword, fromStr, toStr);
+
+  // top-selling products panel reuses the existing item-summary endpoint
+  google.script.run.withSuccessHandler(function (res) {
+    if (res && res.success) renderTopProducts(res);
+  }).withFailureHandler(function () {}).getItemSummary(dashboardPassword, fromStr, toStr);
+}
+
+function loadItemSummary() {
+  document.getElementById('dashModal').classList.remove('hidden');
+  document.getElementById('itemSummaryBody').innerHTML = '<tr><td colspan="4" class="text-white/50 text-center py-10">กำลังโหลดข้อมูล...</td></tr>';
+  const fromStr = document.getElementById('dashDateFrom').value;
+  const toStr = document.getElementById('dashDateTo').value;
+  const factory = document.getElementById('itemSummaryFactory').value;
+
+  google.script.run.withSuccessHandler(function (res) {
+    if (!res.success) {
+      document.getElementById('itemSummaryBody').innerHTML = '';
+      Swal.fire({ icon: 'error', title: 'เข้าถึงไม่ได้', text: res.message, background: '#1e1a18', color: '#fff' }); return;
+    }
+    renderItemSummary(res);
+  }).withFailureHandler(function (err) {
+    document.getElementById('itemSummaryBody').innerHTML = '<tr><td colspan="4" class="text-red-500 text-center py-10">' + err.message + '</td></tr>';
+  }).getItemSummary(dashboardPassword, fromStr, toStr, factory);
+}
+
+const FACTORY_LABELS = { ALL: 'ทุกโรงงาน', BANGCHAN: 'โรงงานบางชัน', LADKRABANG: 'โรงงานลาดกระบัง (รวม 1+2)' };
+
+function renderItemSummary(data) {
+  const rangeLabel = data.startDate === data.endDate ? toThaiDateLabel(data.startDate) : (toThaiDateLabel(data.startDate) + ' ถึง ' + toThaiDateLabel(data.endDate));
+  const factoryLabel = FACTORY_LABELS[data.factory] || 'ทุกโรงงาน';
+  document.getElementById('itemSummaryRange').textContent = 'ช่วงวันที่: ' + rangeLabel + ' | โรงงาน: ' + factoryLabel;
+  document.getElementById('itemSummaryTotalQty').textContent = Number(data.totalQty || 0).toLocaleString('th-TH');
+  document.getElementById('itemSummaryTotalAmount').textContent = fmtMoney(data.totalAmount);
+
+  const body = document.getElementById('itemSummaryBody');
+  if (!data.items || data.items.length === 0) {
+    body.innerHTML = '<tr><td colspan="4" class="text-white/50 text-center py-10">ไม่มีข้อมูลการขายในช่วงวันที่เลือก</td></tr>';
+    return;
+  }
+  body.innerHTML = data.items.map(it => `
+    <tr class="border-t border-white/10">
+      <td class="px-4 py-2.5">${it.item}</td>
+      <td class="px-4 py-2.5 text-white/50">${it.size || '-'}</td>
+      <td class="px-4 py-2.5 text-right">${Number(it.qty).toLocaleString('th-TH')}</td>
+      <td class="px-4 py-2.5 text-right text-[#f5860f]">${fmtMoney(it.amount)}</td>
+    </tr>`).join('');
+}
+
+// "สินค้าขายดี" panel on the overview tab - reuses getItemSummary results, images pulled from CATALOG by name
+function renderTopProducts(data) {
+  const wrap = document.getElementById('dashTopProducts');
+  if (!data.items || data.items.length === 0) {
+    wrap.innerHTML = '<p class="text-white/50 text-sm text-center py-6">ไม่มีข้อมูลในช่วงวันที่เลือก</p>';
+    return;
+  }
+  const top = data.items.slice(0, 4);
+  wrap.innerHTML = top.map(it => {
+    const product = CATALOG.find(p => p.name === it.item) ||
+      CATALOG.find(p => p.name.replace(/\s*\(.*?\)\s*/g, '').trim() === it.item.replace(/\s*\(.*?\)\s*/g, '').trim());
+    const thumbHtml = (product && product.image)
+      ? `<img src="${product.image}" alt="${it.item}" class="w-11 h-11 rounded-xl object-cover border border-white/10 shrink-0">`
+      : `<div class="w-11 h-11 rounded-xl bg-[#1a1614] border border-white/10 shrink-0"></div>`;
+    return `
+    <div class="flex items-center gap-3">
+      ${thumbHtml}
+      <div class="min-w-0 flex-1">
+        <p class="text-sm font-medium truncate">${it.item}</p>
+        <p class="text-white/50 text-xs">ขายแล้ว ${Number(it.qty).toLocaleString('th-TH')} ชิ้น${it.size ? ' ? ไซส์ยอดนิยม: ' + it.size : ''}</p>
+      </div>
+      <p class="text-sm font-semibold text-[#f5860f] shrink-0">${fmtMoney(it.amount)}</p>
+    </div>`;
+  }).join('');
+}
+
+// Buckets each (non-cancelled) order by day within the selected range for a simple daily sales chart
+function renderDashChart(data, isSearch) {
+  const chartEl = document.getElementById('dashChart');
+  const totalEl = document.getElementById('dashChartTotal');
+  if (isSearch) { chartEl.innerHTML = '<p class="text-white/50 text-sm w-full text-center self-center">แสดงเฉพาะในมุมมองแดชบอร์ด ไม่ใช่ผลค้นหา</p>'; totalEl.textContent = ''; return; }
+
+  const byDay = {};
+  data.summary.forEach(emp => emp.orders.forEach(o => {
+    if (o.status === data.cancelledStatus || !o.dateStr) return;
+    byDay[o.dateStr] = (byDay[o.dateStr] || 0) + o.total;
+  }));
+
+  const days = Object.keys(byDay).sort(function (a, b) {
+    const pa = a.split('/').reverse().join(''); const pb = b.split('/').reverse().join('');
+    return pa.localeCompare(pb);
+  });
+
+  if (days.length === 0) {
+    chartEl.innerHTML = '<p class="text-white/50 text-sm w-full text-center self-center">ไม่มีข้อมูลยอดขายในช่วงวันที่เลือก</p>';
+    totalEl.textContent = fmtMoney(0);
+    return;
+  }
+
+  const values = days.map(d => byDay[d]);
+  const max = Math.max.apply(null, values);
+  const sum = values.reduce((a, b) => a + b, 0);
+  totalEl.textContent = fmtMoney(sum);
+
+  chartEl.innerHTML = days.map(d => {
+    const v = byDay[d];
+    const h = max > 0 ? Math.max(6, Math.round((v / max) * 100)) : 6;
+    return `
+      <div class="flex-1 flex flex-col items-center justify-end h-full min-w-0">
+        <p class="text-[10px] text-white/50 mb-1 whitespace-nowrap">${fmtMoney(v)}</p>
+        <div class="w-full rounded-t-lg bg-gradient-to-t from-[#f5860f] to-[#ffb347] shadow-[0_0_12px_rgba(245,134,15,0.45)]" style="height:${h}%"></div>
+        <p class="text-[10px] text-white/50 mt-1">${d.slice(0, 5)}</p>
+      </div>`;
+  }).join('');
+}
+
+function renderDashboard(data, isSearch) {
+  if (isSearch) {
+    document.getElementById('dashDate').textContent = 'ผลการค้นหา: "' + data.query + '" (ทุกวันที่ในระบบ)';
+  } else {
+    const rangeLabel = data.startDate === data.endDate ? toThaiDateLabel(data.startDate) : (toThaiDateLabel(data.startDate) + ' ถึง ' + toThaiDateLabel(data.endDate));
+    document.getElementById('dashDate').textContent = 'ข้อมูลช่วงวันที่: ' + rangeLabel;
+  }
+  document.getElementById('dashStatEmployees').textContent = data.summary.length;
+  document.getElementById('dashStatOrders').textContent = data.totalOrders;
+  document.getElementById('dashGrandTotal').textContent = fmtMoney(data.grandTotal);
+
+  let cancelledCount = 0;
+  data.summary.forEach(emp => { emp.orders.forEach(o => { if (o.status === data.cancelledStatus) cancelledCount++; }); });
+  document.getElementById('dashStatCancelled').textContent = cancelledCount;
+
+  if (dashActiveTab === 'employees') renderDashChart(data, isSearch);
+
+  const grid = document.getElementById('dashGrid');
+  if (data.summary.length === 0) {
+    grid.innerHTML = '<p class="text-white/50 col-span-full text-center py-10">' + (isSearch ? 'ไม่พบผลลัพธ์ที่ค้นหา' : 'ไม่มีคำสั่งซื้อในช่วงวันที่เลือก') + '</p>';
+    return;
+  }
+
+  const statusOptsHtml = data.statusOptions.map(opt => `<option value="${opt}">${opt}</option>`).join('');
+
+  grid.innerHTML = data.summary.map(emp => {
+    const ordersHtml = emp.orders.map(o => {
+      const itemsHtml = o.items.map(it => `<div class="flex justify-between text-xs text-white/50 py-1 border-b border-white/10 last:border-0"><span>- ${it.item} (${it.size}) x${it.qty}</span></div>`).join('');
+      const isCancelled = o.status === data.cancelledStatus;
+      const whenLabel = isSearch ? (o.dateStr + ' ' + o.timestamp) : o.timestamp;
+
+      return `
+        <div class="mt-3 p-3 bg-[#1a1614] rounded-xl border border-white/10 order-block">
+          <div class="flex justify-between items-start mb-2">
+            <div><p class="text-sm font-medium text-white">เลขที่ ${o.orderId}</p><p class="text-xs text-white/50">เวลา ${whenLabel} | รับที่: ${o.pickupLocation}</p></div>
+            <p class="text-sm text-[#f5860f] font-semibold ${isCancelled ? 'line-through opacity-50' : ''}">${fmtMoney(o.total)}</p>
+          </div>
+          <div class="mb-3">${itemsHtml}</div>
+
+          <button data-order-id="${o.orderId}" class="pass-print-btn w-full mb-2 bg-[#f5860f]/10 hover:bg-[#f5860f]/20 border border-[#f5860f]/40 text-[#f5860f] text-xs py-1.5 rounded-xl transition"> พิมพ์ใบผ่าน</button>
+
+          <div class="flex flex-col gap-2 p-2 bg-[#241f1c] rounded-lg border border-white/10">
+            <div class="flex items-center gap-2">
+              <span class="text-xs text-white/50 w-12 shrink-0">สถานะ:</span>
+              <select data-order-id="${o.orderId}" class="status-select flex-1 bg-[#241f1c] border border-white/10 rounded-xl px-2 py-1.5 text-xs outline-none focus:border-[#f5860f]">
+                ${statusOptsHtml.replace(`value="${o.status}"`, `value="${o.status}" selected`)}
+              </select>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-xs text-white/50 w-12 shrink-0">หมายเหตุ:</span>
+              <input type="text" data-order-id="${o.orderId}" class="admin-note-input flex-1 bg-[#241f1c] border border-white/10 rounded-xl px-2 py-1.5 text-xs outline-none focus:border-[#f5860f]" placeholder="แจ้งเตือนให้พนักงานเห็น..." value="${o.adminNote || ''}">
+            </div>
+            <button data-order-id="${o.orderId}" class="status-save-btn w-full mt-1 bg-[#1a1614] hover:bg-white/10 border border-white/10 text-white/70 text-xs py-1.5 rounded-xl transition">บันทึกอัปเดต</button>
+          </div>
+        </div>`;
+    }).join('');
+
+    return `
+      <div class="dash-card bg-[#241f1c] border border-white/10 rounded-2xl p-4">
+        <div class="flex items-center justify-between mb-1">
+          <p class="font-medium text-lg">${emp.name}</p>
+          <p class="text-[#f5860f] font-semibold">${fmtMoney(emp.total)}</p>
+        </div>
+        <p class="text-white/50 text-sm">${emp.dept} | รหัส: ${emp.code}</p>
+        <p class="text-white/50 text-sm">เบอร์: ${emp.phone || '-'}</p>
+        ${ordersHtml}
+      </div>`;
+  }).join('');
+
+  grid.querySelectorAll('.status-save-btn').forEach(btn => {
+    btn.addEventListener('click', function () {
+      const orderId = btn.dataset.orderId;
+      const select = grid.querySelector(`.status-select[data-order-id="${CSS.escape(orderId)}"]`);
+      const noteInput = grid.querySelector(`.admin-note-input[data-order-id="${CSS.escape(orderId)}"]`);
+      if (select.value === data.cancelledStatus) {
+        Swal.fire({
+          icon: 'warning', title: 'ยืนยันการยกเลิกคำสั่งซื้อ?',
+          text: 'คำสั่งซื้อเลขที่ ' + orderId + ' จะถูกทำเครื่องหมายว่ายกเลิก และจะไม่ถูกนับในยอดขาย',
+          background: '#1e1a18', color: '#fff', confirmButtonColor: '#f5860f',
+          showCancelButton: true, confirmButtonText: 'ยืนยันยกเลิก', cancelButtonText: 'ไม่ยกเลิก'
+        }).then(result => {
+          if (result.isConfirmed) updateOrderStatusFromDashboard(orderId, select.value, noteInput.value, btn);
+        });
+        return;
+      }
+      updateOrderStatusFromDashboard(orderId, select.value, noteInput.value, btn);
+    });
+  });
+
+  grid.querySelectorAll('.pass-print-btn').forEach(btn => {
+    btn.addEventListener('click', function () {
+      const orderId = btn.dataset.orderId;
+      const oldText = btn.textContent; btn.textContent = 'กำลังโหลด...'; btn.disabled = true;
+      // เปิดหน้าต่างว่างทันทีตอนกด (ยังอยู่ในจังหวะ user gesture) เพื่อไม่ให้ iOS Safari บล็อกป็อปอัป
+      const printWin = window.open('', '_blank');
+      google.script.run.withSuccessHandler(function (res) {
+        btn.textContent = oldText; btn.disabled = false;
+        if (!res.success) {
+          if (printWin) printWin.close();
+          Swal.fire({ icon: 'error', title: 'พิมพ์ใบผ่านไม่สำเร็จ', text: res.message, background: '#1e1a18', color: '#fff' }); return;
+        }
+        openPassPrintWindow(res.pass, 'admin', printWin);
+      }).withFailureHandler(function (err) {
+        btn.textContent = oldText; btn.disabled = false;
+        if (printWin) printWin.close();
+        Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: err.message, background: '#1e1a18', color: '#fff' });
+      }).getPassData(dashboardPassword, orderId);
+    });
+  });
+}
+
+function updateOrderStatusFromDashboard(orderId, newStatus, newNote, btnEl) {
+  const oldText = btnEl.textContent;
+  btnEl.textContent = 'กำลังบันทึก...'; btnEl.disabled = true;
+  google.script.run.withSuccessHandler(function (res) {
+    btnEl.textContent = oldText; btnEl.disabled = false;
+    if (res.success) {
+      Swal.fire({ toast: true, position: 'top', icon: 'success', title: 'อัปเดตสถานะและหมายเหตุแล้ว', showConfirmButton: false, timer: 1500, background: '#1e1a18', color: '#fff' });
+      if (dashMode === 'search') { runSearch(document.getElementById('dashSearch').value); } else { loadDashboard(); }
+    } else {
+      Swal.fire({ icon: 'error', title: 'ผิดพลาด', text: res.message, background: '#1e1a18', color: '#fff' });
+    }
+  }).withFailureHandler(function (err) {
+    btnEl.textContent = oldText; btnEl.disabled = false;
+    Swal.fire({ icon: 'error', title: 'ผิดพลาด', text: err.message, background: '#1e1a18', color: '#fff' });
+  }).updateOrderData(dashboardPassword, orderId, newStatus, newNote);
+}
+</script>
+</body>
+</html>
